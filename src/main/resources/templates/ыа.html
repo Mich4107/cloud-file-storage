@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag & Drop Загрузка файлов и папок</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f7f7f7;
+        }
+        .upload-container {
+            border: 2px dashed #007BFF;
+            border-radius: 10px;
+            width: 400px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: white;
+            transition: background-color 0.3s;
+        }
+        .upload-container.dragover {
+            background-color: #e3f2fd;
+        }
+        .upload-container p {
+            font-size: 16px;
+            color: #007BFF;
+        }
+        .upload-container input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="upload-container" id="uploadContainer">
+    <p>Перетащите файлы или папки сюда</p>
+    <p>или</p>
+    <button id="fileSelectButton">Выберите файлы</button>
+    <input type="file" id="fileInput" name="files[]" multiple webkitdirectory directory>
+</div>
+
+<script>
+    const uploadContainer = document.getElementById('uploadContainer');
+    const fileInput = document.getElementById('fileInput');
+    const fileSelectButton = document.getElementById('fileSelectButton');
+
+    fileSelectButton.addEventListener('click', () => fileInput.click());
+
+    uploadContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadContainer.classList.add('dragover');
+    });
+
+    uploadContainer.addEventListener('dragleave', () => {
+        uploadContainer.classList.remove('dragover');
+    });
+
+    uploadContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadContainer.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const files = e.target.files;
+        handleFiles(files);
+    });
+
+    function handleFiles(files) {
+        const formData = new FormData();
+        for (const file of files) {
+            formData.append('files[]', file);
+        }
+
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(result => {
+                alert(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+</script>
+</body>
+</html>

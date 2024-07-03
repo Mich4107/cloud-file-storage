@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign up</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/my.css">
+
+</head>
+<body class="bg-my-dark-color">
+<div class="position-absolute top-50 start-50 translate-middle">
+    <div class="container-fluid border-secondary px-4 py-3 rounded bg-dark" style="max-width: 330px;">
+        <h3 class="text-primary text-center">SIGN UP</h3>
+        <form class="row row-cols-1 g-2" th:action="@{/sign-up}" method="post" th:object="${user}">
+            <div class="col">
+                <label for="inputEmail4" class="form-label">Login</label>
+                <span th:text="${errorMessage}" style="color: orangered; font-size: 14px; margin-left: 50px"></span>
+                <input class="form-control bg-my-dark-color border-secondary" id="inputEmail4" th:field="*{login}">
+                <span th:if="${#fields.hasErrors('login')}" th:errors="*{login}" style="color: orangered; font-size: 14px"></span>
+            </div>
+            <div class="col">
+                <label  class="form-label">Password</label>
+                <input type="password" class="form-control bg-my-dark-color border-secondary" th:field="*{password}">
+                <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color: orangered; font-size: 14px"></span>
+            </div>
+            <div class="col">
+                <label class="form-label">Confirm password</label>
+                <input type="password" class="form-control bg-my-dark-color border-secondary" name="passwordCheck">
+            </div>
+            <div class="col-12 gy-3">
+                <button type="submit" class="btn btn-primary col-6">Create account</button>
+                <a href="sign-in" class="text-decoration-none offset-3 offset-sm-3">Sign in</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+</body>
+</html>
