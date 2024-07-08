@@ -1,0 +1,26 @@
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/main-page">
+            <img src="../static/img/logo.png" alt="" height="50" width="50" class="d-inline-block align-text-middle">
+            Cloud File Storage
+        </a>
+        <div sec:authorize="!isAuthenticated()">
+            <div class="d-flex flex-row-reverse">
+                <form action="/sign-in" method="GET">
+                    <button type="submit" class="btn btn-primary mx-3">Sign in</button>
+                </form>
+                <form action="/sign-up" method="GET">
+                    <button type="submit" class="btn btn-primary">Sign up</button>
+                </form>
+            </div>
+        </div>
+        <div sec:authorize="isAuthenticated()">
+            <div class="d-flex flex-row-reverse">
+                <form action="/sign-out" method="POST">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Sign out</button>
+                </form>
+                <div sec:authentication="name" style="margin-right: 15px; font-size: 20px"></div>
+            </div>
+        </div>
+    </div>
+</nav>

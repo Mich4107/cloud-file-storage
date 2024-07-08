@@ -1,0 +1,122 @@
+<div class="container gy-1" style="margin-top: 100px">
+    <div th:if="${param.error != null}">
+        <div th:if="${param.error.getFirst().equals('empty_query')}" th:text="${'Write something before search'}"
+             style="color: orangered; font-size: 14px; margin-bottom: 10px"></div>
+    </div>
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <form th:action="@{/search}" method="get">
+                <div class="input-group">
+                    <input class="form-control bg-my-dark-color" type="search" placeholder="Search..."
+                           aria-label="Search..." name="query">
+                    <button class="btn btn-outline-success" type="submit" style="margin-left: 5px">Search</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-auto">
+            <div sec:authorize="!isAuthenticated()">
+                <form th:action="@{/sign-in}" method="get">
+                    <button type="submit" class="btn btn-primary">Add file</button>
+                </form>
+            </div>
+
+            <div sec:authorize="isAuthenticated()">
+                <form th:action="@{/add-files}" method="post" enctype="multipart/form-data">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#ID_add_file_to_particular_directory2">
+                        Add file
+                    </button>
+                    <div class="modal fade"
+                         id="ID_add_file_to_particular_directory2"
+                         tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content" style="background: #333333; max-width: 80%">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel22">Choose file: </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Закрыть"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="drop-zone" id="drop-zone-file22" style="margin-top: 20px">
+                                                <span class="drop-zone__prompt">Click on the area to select file(s)</span>
+                                                <input type="file" name="files" class="drop-zone__input"
+                                                       id="file-input-file22" multiple>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary d-flex flex-row-reverse"
+                                                style="margin-top: 15px">Upload
+                                        </button>
+
+                                        <div th:if="${param.path != null}">
+                                            <input type="hidden" name="upload_path" th:value="${param.path.getFirst()}">
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-auto">
+            <div sec:authorize="!isAuthenticated()">
+                <form th:action="@{/sign-in}" method="get">
+                    <button type="submit" class="btn btn-primary">Add directory</button>
+                </form>
+            </div>
+            <div sec:authorize="isAuthenticated()">
+                <form th:action="@{/add-files}" method="post" enctype="multipart/form-data">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#ID_add_directory_to_particular_directory22">
+                        Add directory
+                    </button>
+                    <div class="modal fade"
+                         id="ID_add_directory_to_particular_directory22"
+                         tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content" style="background: #333333; max-width: 80%">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel2">Choose directory: </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Закрыть"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="drop-zone" id="drop-zone-file2" style="margin-top: 20px">
+                                                <span class="drop-zone__prompt">Click on the area to select directory</span>
+                                                <input type="file" name="files" class="drop-zone__input"
+                                                       id="file-input-file2" webkitdirectory directory multiple>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary d-flex flex-row-reverse"
+                                                style="margin-top: 15px">Upload
+                                        </button>
+
+                                        <div th:if="${param.path != null}">
+                                            <input type="hidden" name="upload_path" th:value="${param.path.getFirst()}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
