@@ -2,298 +2,126 @@ package ru.yuubi.cloud_file_storage.service;
 
 import io.minio.*;
 import io.minio.errors.*;
-import io.minio.http.Method;
 import io.minio.messages.Item;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import ru.yuubi.cloud_file_storage.exception.NoSuchObjectException;
+import ru.yuubi.cloud_file_storage.dao.MinioRepository;
 
 import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @Service
 public class MinioService {
 
-    @Value("${bucket-name}")
-    private String bucketName;
-
     @Value("${base-user-files-path}")
     private String basePath;
-    private final MinioClient minioClient;
+    private final MinioRepository minioRepository;
 
-    public MinioService(MinioClient minioClient) {
-        this.minioClient = minioClient;
+    public MinioService(MinioRepository minioRepository) {
+        this.minioRepository = minioRepository;
     }
 
-    public String getDownloadUrl(String name, Integer userId) {
-        try {
-            Map<String, String> reqParams = new HashMap<>();
-            reqParams.put("response-content-disposition", "attachment");
-            boolean isPackage = name.endsWith("/");
+    public Map<String, String> searchFiles(String query, Integer userId) {
 
-            if (isPackage) {
-                return getDownloadUrlForDirectory(name, userId, reqParams);
-            }
-
-            return getDownloadUrlForFile(name, userId, reqParams);
-
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<String> getFormattedListOfObjectNames(Integer userId) {
-        try {
-            String userPath = String.format(basePath, userId);
-            Iterable<Result<Item>> results = getListObjects(userPath);
-
-            List<String> objectNames = new ArrayList<>();
-
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                objectNames.add(item.objectName());
-            }
-
-            return removePackagesFromList(objectNames, userPath);
-
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<String> getFormattedListOfObjectNamesInSubdirectory(Integer userId, String pathToSubdirectory) {
-        try {
-            String userPath = String.format(basePath, userId);
-            Iterable<Result<Item>> results = getListObjects(userPath + pathToSubdirectory);
-
-            List<String> objectNames = new ArrayList<>();
-
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                objectNames.add(item.objectName());
-            }
-
-            return removePackagesFromList(objectNames, userPath + pathToSubdirectory);
-
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private void uploadFile(MultipartFile file, Integer userId) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         String userPath = String.format(basePath, userId);
-        String name = file.getOriginalFilename();
-        InputStream inputStream = file.getInputStream();
-        String contentType = file.getContentType();
-        long size = file.getSize();
+        Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath);
 
-        minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(userPath + name)
-                        .stream(inputStream, size, -1)
-                        .contentType(contentType)
-                        .build()
-        );
-    }
+        Map<String, String> objectPathMap = new HashMap<>();
 
-    public void uploadFiles(MultipartFile[] files, Integer userId) {
-        try {
+        for(Result<Item> result : results) {
 
-            for (MultipartFile file : files) {
-                uploadFile(file, userId);
-            }
+            Item item = getItemFromResult(result);
+            String objectName = item.objectName();
+            objectName = removePackagesFromString(objectName, userPath);
 
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-    }
+            if(isObjectNameContainsQuery(objectName, query)) {
 
-    public void renameObject(String oldName, String newName, Integer userId) {
-        try {
-            String userPath = String.format(basePath, userId);
+                String[] names = objectName.split("/");
+                boolean isObjectOneFile = names.length == 1;
 
-            String oldObjectName = userPath + oldName;
-            String newObjectName = userPath + newName;
 
-            copyObjectWithNewName(oldObjectName, newObjectName);
-            removeObject(oldObjectName);
+                if(isObjectOneFile) {
+                    String emptyPath = "";
+                    objectPathMap.put(emptyPath, objectName);
+                    System.out.println("Added: "+objectName);
+                    continue;
+                }
 
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException | NoSuchObjectException e) {
-            throw new RuntimeException(e);
-        }
-    }
+                StringBuilder pathBuilder = new StringBuilder();
 
-    public void renameDirectory(String oldName, String newName, Integer userId) {
-        try {
-            String userPath = String.format(basePath, userId);
-            Iterable<Result<Item>> results = getListObjectsRecursively(userPath + oldName);
+                for (int i = 0; i < names.length; i++) {
 
-            for (Result<Item> result : results) {
-                Item item = result.get();
+                    boolean isElementLast = i == names.length - 1;
+                    String name = names[i];
 
-                String oldObjectName = item.objectName();
-                String newObjectName = oldObjectName.replace(oldName, newName);
-
-                copyObjectWithNewName(oldObjectName, newObjectName);
-                removeObject(oldObjectName);
-            }
-
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException | NoSuchObjectException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void removeObject(String name, Integer userId) {
-        String userPath = String.format(basePath, userId);
-        try {
-            minioClient.removeObject(
-                    RemoveObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(userPath + name)
-                            .build()
-            );
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void removeDirectory(String directoryName, Integer userId) {
-        try {
-            String userPath = String.format(basePath, userId);
-            Iterable<Result<Item>> results = getListObjectsRecursively(userPath + directoryName);
-
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                removeObject(item.objectName());
-            }
-
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Iterable<Result<Item>> getListObjects(String path) {
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .prefix(path)
-                        .build()
-        );
-    }
-
-    private Iterable<Result<Item>> getListObjectsRecursively(String path) {
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .prefix(path)
-                        .recursive(true)
-                        .build()
-        );
-    }
-
-    private String getDownloadUrlForDirectory(String name, Integer userId, Map<String, String> reqParams) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        String userPath = String.format(basePath, userId);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        try (ZipOutputStream zipOut = new ZipOutputStream(baos)) {
-
-            Iterable<Result<Item>> results = getListObjectsRecursively(userPath + name);
-
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                if (!item.isDir()) {
-                    try (InputStream inputStream = getObjectInputStream(item.objectName())) {
-                        String formattedName = removePackagesFromString(item.objectName(), userPath + name);
-                        addFileToZip(zipOut, formattedName, inputStream);
+                    if(!isElementLast) {
+                        if(isObjectNameContainsQuery(name, query)) {
+                            objectPathMap.put(pathBuilder.toString(), name+"/");
+                        }
+                        pathBuilder.append(name).append("/");
+                    } else {
+                        if(isObjectNameContainsQuery(name, query)) {
+                            boolean isObjectPackage = name.endsWith("/");
+                            if(isObjectPackage) {
+                                name = name + "/";
+                            }
+                            objectPathMap.put(pathBuilder.toString(), name);
+                            System.out.println("Added: "+pathBuilder);
+                        }
                     }
                 }
             }
         }
-        byte[] zipData = baos.toByteArray();
-        String zipObjectName = uploadZipFile(zipData, userId, name);
 
-        return getPresignedObjectUrl(zipObjectName, reqParams);
+        return objectPathMap;
+
     }
 
-    private String getDownloadUrlForFile(String name, Integer userId, Map<String, String> reqParams) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        String userPath = String.format(basePath, userId);
-        return getPresignedObjectUrl(userPath + name, reqParams);
+    private boolean isObjectNameContainsQuery(String objectName, String query) {
+        return objectName.matches(".*"+query+".*");
     }
 
-    private String getPresignedObjectUrl(String objectName, Map<String, String> reqParams) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        return minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                        .method(Method.GET)
-                        .bucket(bucketName)
-                        .object(objectName)
-                        .expiry(1, TimeUnit.DAYS)
-                        .extraQueryParams(reqParams)
-                        .build()
-        );
-    }
+    public String getDownloadUrl(String name, Integer userId) throws IOException {
+        Map<String, String> reqParams = new HashMap<>();
+        reqParams.put("response-content-disposition", "attachment");
+        boolean isPackage = name.endsWith("/");
 
-    private InputStream getObjectInputStream(String objectName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        return minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(objectName)
-                        .build()
-        );
-    }
-
-    private String uploadZipFile(byte[] zipData, Integer userId, String name) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-
-        try (InputStream inputStream = new ByteArrayInputStream(zipData)) {
-
-            String zipName = createZipName(name);
-            String userPath = String.format("user-%d-zip-files/", userId);
-            String objectName = userPath + zipName;
-
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .stream(inputStream, -1, 5 * 1024 * 1024)
-                            .build()
-            );
-            return objectName;
+        if (isPackage) {
+            return getDownloadUrlForDirectory(name, userId, reqParams);
+        } else {
+            return getDownloadUrlForFile(name, userId, reqParams);
         }
     }
 
-    private String createZipName(String name) {
-        String[] strings = name.split("/");
-        int length = strings.length;
-        return strings[length - 1] + ".zip";
+    private String getDownloadUrlForDirectory(String name, Integer userId, Map<String, String> reqParams) throws IOException {
+        String userPath = String.format(basePath, userId);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        try (ZipOutputStream zipOut = new ZipOutputStream(baos)) {
+            Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath + name);
+            createZipFile(results, zipOut, userPath + name);
+        }
+        byte[] zipData = baos.toByteArray();
+        String zipObjectName = uploadZipFile(zipData, userId, name);
+
+        return minioRepository.getPresignedObjectUrl(zipObjectName, reqParams);
     }
 
-    private List<String> removePackagesFromList(List<String> objectNames, String packagesToRemove) {
-        return objectNames.stream()
-                .map(object -> object.replaceAll(packagesToRemove, ""))
-                .toList();
+    private void createZipFile(Iterable<Result<Item>> results, ZipOutputStream zipOut, String packagesToRemove) throws IOException {
+        for (Result<Item> result : results) {
+            Item item = getItemFromResult(result);
+            if (!item.isDir()) {
+                try (InputStream inputStream = minioRepository.getObjectInputStream(item.objectName())) {
+                    String formattedName = removePackagesFromString(item.objectName(), packagesToRemove);
+                    addFileToZip(zipOut, formattedName, inputStream);
+                }
+            }
+        }
     }
 
     private String removePackagesFromString(String objectName, String packagesToRemove) {
@@ -301,6 +129,15 @@ public class MinioService {
     }
 
     private void addFileToZip(ZipOutputStream zipOut, String name, InputStream inputStream) throws IOException {
+
+        // the name can be empty if the directory was empty earlier, and for the convenience of the user, we created
+        // directory that contained an empty file (0 byte & empty name) so that the directory path could
+        // remain in Minio, even if all files from it have already been deleted (This was done due to the specificity
+        // of Minio). Therefore, we need to ignore this file when creating the zip.
+        if (name.isBlank()) {
+            return;
+        }
+
         ZipEntry zipEntry = new ZipEntry(name);
         zipOut.putNextEntry(zipEntry);
 
@@ -313,28 +150,175 @@ public class MinioService {
         zipOut.closeEntry();
     }
 
-    private void removeObject(String objectName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        minioClient.removeObject(
-                RemoveObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(objectName)
-                        .build()
-        );
+    private String uploadZipFile(byte[] zipData, Integer userId, String name) throws IOException {
+
+        try (InputStream inputStream = new ByteArrayInputStream(zipData)) {
+
+            String zipName = createZipName(name);
+            String userPath = String.format("user-%d-zip-files/", userId);
+            String objectName = userPath + zipName;
+
+            minioRepository.uploadObject(inputStream, objectName);
+
+            return objectName;
+        }
     }
 
-    private void copyObjectWithNewName(String oldObjectName, String newObjectName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        minioClient.copyObject(
-                CopyObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(newObjectName)
-                        .source(
-                                CopySource.builder()
-                                        .bucket(bucketName)
-                                        .object(oldObjectName)
-                                        .build()
-                        ).build()
-        );
+    private String createZipName(String name) {
+        String[] strings = name.split("/");
+        int length = strings.length;
+        return strings[length - 1] + ".zip";
+    }
+
+    private String getDownloadUrlForFile(String name, Integer userId, Map<String, String> reqParams)  {
+        String userPath = String.format(basePath, userId);
+        return minioRepository.getPresignedObjectUrl(userPath + name, reqParams);
+    }
+
+    public List<String> getFormattedListOfObjectNames(Integer userId) {
+
+        String userPath = String.format(basePath, userId);
+        Iterable<Result<Item>> results = minioRepository.findObjects(userPath);
+
+        List<String> objectNames = new ArrayList<>();
+
+        for (Result<Item> result : results) {
+            Item item = getItemFromResult(result);
+            objectNames.add(item.objectName());
+        }
+        return removePackagesFromList(objectNames, userPath);
+    }
+
+    public List<String> getFormattedListOfObjectNamesInSubdirectory(Integer userId, String pathToSubdirectory) {
+        String userPath = String.format(basePath, userId);
+        Iterable<Result<Item>> results = minioRepository.findObjects(userPath + pathToSubdirectory);
+
+        List<String> objectNames = new ArrayList<>();
+
+        for (Result<Item> result : results) {
+            Item item = getItemFromResult(result);
+            objectNames.add(item.objectName());
+        }
+
+        return removePackagesFromList(objectNames, userPath + pathToSubdirectory);
+    }
+
+    private List<String> removePackagesFromList(List<String> objectNames, String packagesToRemove) {
+        return objectNames.stream()
+                .map(object -> object.replaceAll(packagesToRemove, ""))
+                .toList();
     }
 
 
+    public void uploadFiles(MultipartFile[] files, Integer userId, String pathToUpload) {
+        long start = System.currentTimeMillis();
+
+        String userPath = String.format(basePath, userId);
+
+        for (MultipartFile file : files) {
+            uploadFile(file, userPath, pathToUpload);
+        }
+
+        long end = System.currentTimeMillis();
+        long result = end - start;
+        System.out.println("It takes: "+result);
+    }
+
+    private void uploadFile(MultipartFile file, String userPath, String pathToUpload) {
+        String name = file.getOriginalFilename();
+
+        if (pathToUpload != null) {
+            name = pathToUpload + name;
+        }
+        minioRepository.uploadObject(file, userPath + name);
+    }
+
+    private boolean isDirectoryEmpty(String pathToDirectory) {
+        Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(pathToDirectory);
+        for(Result<Item> result : results) {
+            Item item = getItemFromResult(result);
+            if(item.objectName().equals(pathToDirectory)) {
+                return true;
+            }
+            break;
+        }
+        return false;
+    }
+
+    public void renameObject(String oldName, String newName, Integer userId) {
+        String userPath = String.format(basePath, userId);
+
+        String oldObjectName = userPath + oldName;
+        String newObjectName = userPath + newName;
+
+        minioRepository.copyObjectWithNewName(oldObjectName, newObjectName);
+        minioRepository.removeObject(oldObjectName);
+    }
+
+    public void renameDirectory(String oldName, String newName, Integer userId) {
+        String userPath = String.format(basePath, userId);
+        Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath + oldName);
+
+        for (Result<Item> result : results) {
+            Item item = getItemFromResult(result);
+
+            String oldObjectName = item.objectName();
+            String newObjectName = oldObjectName.replace(oldName, newName);
+
+            minioRepository.copyObjectWithNewName(oldObjectName, newObjectName);
+            minioRepository.removeObject(oldObjectName);
+        }
+    }
+
+    public void removeObject(String name, Integer userId, String pathToObject) {
+        String userPath = String.format(basePath, userId);
+        if (pathToObject != null) {
+            boolean isOneObject = isOneObjectOnParticularPath(userPath + pathToObject);
+            if (isOneObject) {
+                minioRepository.uploadEmptyDirectory(userPath + pathToObject);
+            }
+        }
+        minioRepository.removeObject(userPath + name);
+    }
+
+    public void removeDirectory(String directoryName, Integer userId, String pathToObject) {
+        String userPath = String.format(basePath, userId);
+
+        if (pathToObject != null) {
+            boolean isOneObject = isOneObjectOnParticularPath(userPath + pathToObject);
+            if (isOneObject) {
+                minioRepository.uploadEmptyDirectory(userPath + pathToObject);
+            }
+        }
+
+        Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath + directoryName);
+
+        for (Result<Item> result : results) {
+            Item item = getItemFromResult(result);
+            minioRepository.removeObject(item.objectName());
+        }
+
+    }
+
+    private boolean isOneObjectOnParticularPath(String path) {
+        Iterable<Result<Item>> results = minioRepository.findObjects(path);
+        int counter = 0;
+
+        for (Result<Item> result : results) {
+            counter++;
+        }
+        return counter == 1;
+    }
+
+    private Item getItemFromResult(Result<Item> result) {
+        try {
+
+            return result.get();
+
+        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
+                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
+                 XmlParserException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

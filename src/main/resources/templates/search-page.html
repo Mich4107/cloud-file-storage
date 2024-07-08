@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Main page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/css/my.css">
+
+</head>
+<body class="bg-my-dark-color">
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/main-page">
+            <img src="../static/img/logo.png" alt="" height="50" width="50" class="d-inline-block align-text-middle">
+            Cloud File Storage
+        </a>
+        <div sec:authorize="!isAuthenticated()">
+            <div class="d-flex flex-row-reverse">
+                <form action="/sign-in" method="GET">
+                    <button type="submit" class="btn btn-primary mx-3">Sign in</button>
+                </form>
+                <form action="/sign-up" method="GET">
+                    <button type="submit" class="btn btn-primary">Sign up</button>
+                </form>
+            </div>
+        </div>
+        <div sec:authorize="isAuthenticated()">
+            <div class="d-flex flex-row-reverse">
+                <form action="/sign-out" method="POST">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Sign out</button>
+                </form>
+                <div sec:authentication="name" style="margin-right: 15px; font-size: 20px"></div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+<div class="container gy-1" style="margin-top: 100px">
+    <div th:if="${param.error != null}">
+        <div th:if="${param.error.getFirst().equals('empty_query')}" th:text="${'Write something before search'}"
+             style="color: orangered; font-size: 14px; margin-bottom: 10px"></div>
+    </div>
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <form th:action="@{/search}" method="get">
+                <div class="input-group">
+                    <input class="form-control bg-my-dark-color" type="search" placeholder="Search..."
+                           aria-label="Search..." name="query">
+                    <button class="btn btn-outline-success" type="submit" style="margin-left: 5px">Search</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-auto">
+            <div sec:authorize="!isAuthenticated()">
+                <form th:action="@{/sign-in}" method="get">
+                    <button type="submit" class="btn btn-primary">Add file</button>
+                </form>
+            </div>
+
+            <div sec:authorize="isAuthenticated()">
+                <form th:action="@{/add-files}" method="post" enctype="multipart/form-data">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#ID_add_file_to_particular_directory2">
+                        Add file
+                    </button>
+                    <div class="modal fade"
+                         id="ID_add_file_to_particular_directory2"
+                         tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content" style="background: #333333; max-width: 80%">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel22">Choose file: </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Закрыть"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="drop-zone" id="drop-zone-file22" style="margin-top: 20px">
+                                                <span class="drop-zone__prompt">Click on the area to select file(s)</span>
+                                                <input type="file" name="files" class="drop-zone__input"
+                                                       id="file-input-file22" multiple>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary d-flex flex-row-reverse"
+                                                style="margin-top: 15px">Upload
+                                        </button>
+
+                                        <div th:if="${param.path != null}">
+                                            <input type="hidden" name="upload_path" th:value="${param.path.getFirst()}">
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-auto">
+            <div sec:authorize="!isAuthenticated()">
+                <form th:action="@{/sign-in}" method="get">
+                    <button type="submit" class="btn btn-primary">Add directory</button>
+                </form>
+            </div>
+            <div sec:authorize="isAuthenticated()">
+                <form th:action="@{/add-files}" method="post" enctype="multipart/form-data">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#ID_add_directory_to_particular_directory22">
+                        Add directory
+                    </button>
+                    <div class="modal fade"
+                         id="ID_add_directory_to_particular_directory22"
+                         tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content" style="background: #333333; max-width: 80%">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel2">Choose directory: </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Закрыть"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="drop-zone" id="drop-zone-file2" style="margin-top: 20px">
+                                                <span class="drop-zone__prompt">Click on the area to select directory</span>
+                                                <input type="file" name="files" class="drop-zone__input"
+                                                       id="file-input-file2" webkitdirectory directory multiple>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary d-flex flex-row-reverse"
+                                                style="margin-top: 15px">Upload
+                                        </button>
+
+                                        <div th:if="${param.path != null}">
+                                            <input type="hidden" name="upload_path" th:value="${param.path.getFirst()}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:if="${!objectPathMap.isEmpty()}">
+    <div class="container">
+        <div class="row g-3" style="margin-top: 15px">
+            <div th:each="object : ${objectPathMap}">
+                <div class="col-lg-12 col-md-12 col-12" style="height: auto;">
+                    <div th:if="${#strings.endsWith(object.value, '/')}">
+                        <div class="border rounded p-2 position-relative" style="height: auto;">
+                            <div class="d-flex align-items-center text-decoration-none">
+                                <img src="../static/img/package.png" alt="package" width="20px" height="20px"
+                                     class="me-2"/>
+                                <div class="d-flex align-items-center " style="width: 100%;">
+                                    <span class="file-name"
+                                          style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                          th:text="${#strings.replace(object.value, '/', '')}">
+                                        </span>
+                                    <!--                                    !!!!!!!!!!!!!-->
+                                    <form th:action="@{/main-page}" method="get">
+                                        <button type="submit" class="btn btn-secondary btn-sm ms-3 p-1"
+                                                style="font-size: 0.75em; height: 26px">GO TO THE FOLDER DESTINATION
+                                        </button>
+                                        <input type="hidden" name="path" th:value="${object.key}">
+                                    </form>
+                                    <!--                                    !!!!!!!!!!!!!-->
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${!#strings.endsWith(object.value, '/') && !object.value.isBlank()}">
+                        <div class="border rounded p-2 position-relative" style="height: auto;">
+                            <div class="d-flex align-items-center text-decoration-none">
+                                <img src="../static/img/file.png" alt="file" width="20px" height="20px" class="me-2"/>
+                                <div class="d-flex align-items-center" style="width: 100%;">
+                                    <span class="file-name"
+                                          style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span th:text="${object.value}"></span>
+                            </span>
+                                <form th:action="@{/main-page}" method="get">
+                                    <button type="submit" class="btn btn-secondary btn-sm ms-3 p-1"
+                                            style="font-size: 0.75em; height: 26px">GO TO THE FILE DESTINATION
+                                    </button>
+                                    <input type="hidden" name="path" th:value="${object.key}">
+                                </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:if="${objectPathMap.isEmpty()}">
+    <div class="container">
+        <div class="row">
+            <span style="margin-top: 40px; font-size: 20px; color: #009578;">Search yielded no results. Try another request</span>
+        </div>
+    </div>
+</div>
+
+
+<script src="../static/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+        integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+        integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+        crossorigin="anonymous"></script>
+
+</body>
+</html>

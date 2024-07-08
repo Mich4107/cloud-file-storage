@@ -1,3 +1,1 @@
--Fix: rename, delete file / directory (if only 1 file in the folder and we deleting it - the whole folder's structure doesn't deleted)
 
--Add deleting zip files
