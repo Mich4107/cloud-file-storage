@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.dao.MinioRepository;
+import ru.yuubi.cloud_file_storage.dto.SearchDto;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.CleanupService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
@@ -59,15 +60,15 @@ public class MainController {
                                RedirectAttributes redirectAttributes,
                                Model model) {
 
-        if(searchQuery.isBlank()) {
+        if (searchQuery.isBlank()) {
             redirectAttributes.addAttribute("error", "empty_query");
             return "redirect:/main-page";
         }
 
         Integer userId = authService.getAuthenticatedUserId();
-        Map<String, String> objectPathMap = minioService.searchFiles(searchQuery, userId);
+        List<SearchDto> searchDtoList = minioService.searchFiles(searchQuery, userId);
 
-        model.addAttribute("objectPathMap", objectPathMap);
+        model.addAttribute("searchDtoList", searchDtoList);
 
         return "search-page";
     }
@@ -87,7 +88,7 @@ public class MainController {
         Integer userId = authService.getAuthenticatedUserId();
         minioService.uploadFiles(files, userId, pathToUpload);
 
-        if(pathToUpload != null) {
+        if (pathToUpload != null) {
             redirectAttributes.addAttribute("path", pathToUpload);
             return "redirect:/main-page";
         }
@@ -103,7 +104,7 @@ public class MainController {
         Integer userId = authService.getAuthenticatedUserId();
         minioService.removeObject(objectName, userId, pathToObject);
 
-        if(pathToObject != null) {
+        if (pathToObject != null) {
             redirectAttributes.addAttribute("path", pathToObject);
         }
 
@@ -119,7 +120,7 @@ public class MainController {
         Integer userId = authService.getAuthenticatedUserId();
         minioService.removeDirectory(directoryName, userId, pathToObject);
 
-        if(pathToObject != null) {
+        if (pathToObject != null) {
             redirectAttributes.addAttribute("path", pathToObject);
         }
 
@@ -136,7 +137,7 @@ public class MainController {
         String url = minioService.getDownloadUrl(name, userId);
         boolean isPackage = name.endsWith("/");
 
-        if(isPackage) {
+        if (isPackage) {
             cleanupService.scheduleZipFileDeletion(url);
         }
 
@@ -153,7 +154,7 @@ public class MainController {
             return "redirect:/main-page";
         }
 
-        if(pathToObject != null) {
+        if (pathToObject != null) {
             newObjectName = pathToObject + newObjectName;
             oldObjectName = pathToObject + oldObjectName;
 
@@ -179,7 +180,7 @@ public class MainController {
             return "redirect:/main-page";
         }
 
-        if(pathToDirectory != null) {
+        if (pathToDirectory != null) {
             newDirectoryName = pathToDirectory + newDirectoryName;
             oldDirectoryName = pathToDirectory + oldDirectoryName;
         }
@@ -187,7 +188,7 @@ public class MainController {
         Integer userId = authService.getAuthenticatedUserId();
         minioService.renameDirectory(oldDirectoryName, newDirectoryName, userId);
 
-        if(pathToDirectory != null) {
+        if (pathToDirectory != null) {
             redirectAttributes.addAttribute("path", pathToDirectory);
             return "redirect:/main-page";
         }

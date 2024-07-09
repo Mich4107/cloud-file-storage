@@ -16,12 +16,12 @@
 
 <div th:replace="~{search-add-files-component}"></div>
 
-<div th:if="${!objectPathMap.isEmpty()}">
+<div th:if="${!searchDtoList.isEmpty()}">
     <div class="container">
         <div class="row g-3" style="margin-top: 15px">
-            <div th:each="object : ${objectPathMap}">
+            <div th:each="searchDto : ${searchDtoList}">
                 <div class="col-lg-12 col-md-12 col-12" style="height: auto;">
-                    <div th:if="${#strings.endsWith(object.value, '/')}">
+                    <div th:if="${#strings.endsWith(searchDto.getName(), '/')}">
                         <div class="border rounded p-2 position-relative" style="height: auto;">
                             <div class="d-flex align-items-center text-decoration-none">
                                 <img src="../static/img/package.png" alt="package" width="20px" height="20px"
@@ -29,35 +29,58 @@
                                 <div class="d-flex align-items-center " style="width: 100%;">
                                     <span class="file-name"
                                           style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
-                                          th:text="${#strings.replace(object.value, '/', '')}">
+                                          th:text="${#strings.replace(searchDto.getName(), '/', '')}">
                                         </span>
                                     <form th:action="@{/main-page}" method="get">
                                         <button type="submit" class="btn btn-secondary btn-sm ms-3 p-1"
-                                                style="font-size: 0.75em; height: 26px">GO TO THE FOLDER DESTINATION
+                                                style="font-size: 0.75em; height: 26px">GO TO THE FOLDER LOCATION
                                         </button>
-                                        <input type="hidden" name="path" th:value="${object.key}">
+                                        <input type="hidden" name="path" th:value="${searchDto.getPath()}">
                                     </form>
+                                    <div class="ms-auto">
+                                        <div th:if="${searchDto.getPath().isBlank()}">
+                                            <span th:text="'Location: Root folder'"></span>
+                                            <img src="../static/img/logo.png" width="30px" height="30px" class="me-2"/>
+                                        </div>
+                                        <div th:if="${!searchDto.getPath().isBlank()}">
+                                            <span th:text="${'Location: '+#strings.listSplit(searchDto.getPath(), '/').getLast()}"></span>
+                                            <img src="../static/img/package.png" alt="package" width="20px" height="20px"
+                                                 class="me-2"/>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div th:if="${!#strings.endsWith(object.value, '/') && !object.value.isBlank()}">
+                    <div th:if="${!#strings.endsWith(searchDto.getName(), '/') && !searchDto.getName().isBlank()}">
                         <div class="border rounded p-2 position-relative" style="height: auto;">
                             <div class="d-flex align-items-center text-decoration-none">
                                 <img src="../static/img/file.png" alt="file" width="20px" height="20px" class="me-2"/>
                                 <div class="d-flex align-items-center" style="width: 100%;">
                                     <span class="file-name"
                                           style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                <span th:text="${object.value}"></span>
-                            </span>
-                                <form th:action="@{/main-page}" method="get">
-                                    <button type="submit" class="btn btn-secondary btn-sm ms-3 p-1"
-                                            style="font-size: 0.75em; height: 26px">GO TO THE FILE DESTINATION
-                                    </button>
-                                    <input type="hidden" name="path" th:value="${object.key}">
-                                </form>
+                                         <span th:text="${searchDto.getName()}"></span>
+                                    </span>
+                                    <form th:action="@{/main-page}" method="get">
+                                        <button type="submit" class="btn btn-secondary btn-sm ms-3 p-1"
+                                                style="font-size: 0.75em; height: 26px">GO TO THE FILE LOCATION
+                                        </button>
+                                        <input type="hidden" name="path" th:value="${searchDto.getPath()}">
+                                    </form>
+                                    <div class="ms-auto" >
+                                        <div th:if="${searchDto.getPath().isBlank()}">
+                                            <span th:text="'Location: Root folder'"></span>
+                                            <img src="../static/img/logo.png" width="30px" height="30px" class="me-2"/>
+                                        </div>
+                                        <div th:if="${!searchDto.getPath().isBlank()}">
+                                            <span th:text="${'Location: '+#strings.listSplit(searchDto.getPath(), '/').getLast()}"></span>
+                                            <img src="../static/img/package.png" alt="package" width="20px" height="20px"
+                                                 class="me-2"/>
+                                        </div>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -66,7 +89,7 @@
         </div>
     </div>
 </div>
-<div th:if="${objectPathMap.isEmpty()}">
+<div th:if="${searchDtoList.isEmpty()}">
     <div class="container">
         <div class="row">
             <span style="margin-top: 40px; font-size: 20px; color: #009578;">Search yielded no results. Try another request</span>

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yuubi.cloud_file_storage.dao.MinioRepository;
+import ru.yuubi.cloud_file_storage.dto.SearchDto;
 
 import java.io.*;
 import java.security.InvalidKeyException;
@@ -26,64 +27,69 @@ public class MinioService {
         this.minioRepository = minioRepository;
     }
 
-    public Map<String, String> searchFiles(String query, Integer userId) {
+    public List<SearchDto> searchFiles(String query, Integer userId) {
 
         String userPath = String.format(basePath, userId);
         Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath);
 
-        Map<String, String> objectPathMap = new HashMap<>();
+        List<SearchDto> searchDtoList = new ArrayList<>();
 
-        for(Result<Item> result : results) {
-
+        for (Result<Item> result : results) {
             Item item = getItemFromResult(result);
+
             String objectName = item.objectName();
             objectName = removePackagesFromString(objectName, userPath);
 
-            if(isObjectNameContainsQuery(objectName, query)) {
-
-                String[] names = objectName.split("/");
-                boolean isObjectOneFile = names.length == 1;
-
-
-                if(isObjectOneFile) {
-                    String emptyPath = "";
-                    objectPathMap.put(emptyPath, objectName);
-                    System.out.println("Added: "+objectName);
-                    continue;
-                }
-
-                StringBuilder pathBuilder = new StringBuilder();
-
-                for (int i = 0; i < names.length; i++) {
-
-                    boolean isElementLast = i == names.length - 1;
-                    String name = names[i];
-
-                    if(!isElementLast) {
-                        if(isObjectNameContainsQuery(name, query)) {
-                            objectPathMap.put(pathBuilder.toString(), name+"/");
-                        }
-                        pathBuilder.append(name).append("/");
-                    } else {
-                        if(isObjectNameContainsQuery(name, query)) {
-                            boolean isObjectPackage = name.endsWith("/");
-                            if(isObjectPackage) {
-                                name = name + "/";
-                            }
-                            objectPathMap.put(pathBuilder.toString(), name);
-                            System.out.println("Added: "+pathBuilder);
-                        }
-                    }
-                }
-            }
+            searchProcess(objectName, searchDtoList, query);
         }
 
-        return objectPathMap;
+        return searchDtoList;
 
     }
 
-    private boolean isObjectNameContainsQuery(String objectName, String query) {
-        return objectName.matches(".*"+query+".*");
+    private void searchProcess(String objectName, List<SearchDto> searchDtoList, String query) {
+
+        if (isNameContainsQuery(objectName, query)) {
+
+            String[] names = objectName.split("/");
+            boolean isSingleObject = names.length == 1;
+
+            if (isSingleObject) {
+                searchDtoList.add(new SearchDto("", objectName));
+            } else {
+                findingMatchesInNames(names, objectName, searchDtoList, query);
+            }
+        }
+    }
+
+    private void findingMatchesInNames(String[] names, String objectName, List<SearchDto> searchDtoList, String query) {
+        StringBuilder pathBuilder = new StringBuilder();
+
+        for (int i = 0; i < names.length; i++) {
+            boolean isLastElement = i == names.length - 1;
+            String name = names[i];
+
+            if (!isLastElement) {
+                if (isNameContainsQuery(name, query)) {
+                    searchDtoList.add(new SearchDto(pathBuilder.toString(), name + "/"));
+                }
+                pathBuilder.append(name).append("/");
+            } else {
+                if (isNameContainsQuery(name, query)) {
+                    boolean isLastObjectPackage = objectName.endsWith("/");
+                    if (isLastObjectPackage) {
+                        name = name + "/";
+                    }
+                    searchDtoList.add(new SearchDto(pathBuilder.toString(), name));
+                }
+            }
+        }
+    }
+
+    private boolean isNameContainsQuery(String name, String query) {
+        name = name.toLowerCase();
+        query = query.toLowerCase();
+        return name.matches(".*" + query + ".*");
     }
 
     public String getDownloadUrl(String name, Integer userId) throws IOException {
@@ -170,7 +176,7 @@ public class MinioService {
         return strings[length - 1] + ".zip";
     }
 
-    private String getDownloadUrlForFile(String name, Integer userId, Map<String, String> reqParams)  {
+    private String getDownloadUrlForFile(String name, Integer userId, Map<String, String> reqParams) {
         String userPath = String.format(basePath, userId);
         return minioRepository.getPresignedObjectUrl(userPath + name, reqParams);
     }
@@ -221,7 +227,7 @@ public class MinioService {
 
         long end = System.currentTimeMillis();
         long result = end - start;
-        System.out.println("It takes: "+result);
+        System.out.println("It takes: " + result);
     }
 
     private void uploadFile(MultipartFile file, String userPath, String pathToUpload) {
@@ -231,18 +237,6 @@ public class MinioService {
             name = pathToUpload + name;
         }
         minioRepository.uploadObject(file, userPath + name);
-    }
-
-    private boolean isDirectoryEmpty(String pathToDirectory) {
-        Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(pathToDirectory);
-        for(Result<Item> result : results) {
-            Item item = getItemFromResult(result);
-            if(item.objectName().equals(pathToDirectory)) {
-                return true;
-            }
-            break;
-        }
-        return false;
     }
 
     public void renameObject(String oldName, String newName, Integer userId) {

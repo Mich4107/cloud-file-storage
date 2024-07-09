@@ -104,8 +104,8 @@ public class MinioRepository {
                             .build()
             );
         } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                XmlParserException e) {
+                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
+                 XmlParserException e) {
             throw new RuntimeException(e);
         }
     }
@@ -147,7 +147,7 @@ public class MinioRepository {
         );
     }
 
-    public void uploadEmptyDirectory(String objectName)  {
+    public void uploadEmptyDirectory(String objectName) {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()

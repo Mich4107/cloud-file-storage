@@ -12,10 +12,9 @@
 
 </head>
 <body class="bg-my-dark-color">
+
 <div th:replace="~{header-component}"></div>
-
 <div th:replace="~{search-add-files-component}"></div>
-
 
 <div th:if="${!objects.isEmpty()}">
     <div class="container">
@@ -73,17 +72,7 @@
                                                 </li>
                                                 <li>
                                                     <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                            th:data-bs-target="'#ID_'+
-                                                                ${#strings.replace(
-                                                                    #strings.replace(
-                                                                        #strings.replace(
-                                                                            #strings.replace(
-                                                                                #strings.replace(object
-                                                                                , '.', '_')
-                                                                                , ' ', '_')
-                                                                                , '/', '_')
-                                                                                , '(', '_')
-                                                                                , ')', '_')}">
+                                                            th:data-bs-target="'#ID_'+${#strings.replace(#strings.replace(#strings.replace(#strings.replace(#strings.replace(object, '.', '_'), ' ', '_'), '/', '_'), '(', '_'), ')', '_')}">
                                                         Rename
                                                     </button>
                                                 </li>
@@ -131,17 +120,7 @@
 
                         <form th:action="@{/rename-directory}" method="post">
                             <div class="modal fade"
-                                 th:id="'ID_'+${
-                                 #strings.replace(
-                                    #strings.replace(
-                                        #strings.replace(
-                                            #strings.replace(
-                                                #strings.replace(object
-                                                , '.', '_')
-                                                , ' ', '_')
-                                                , '/', '_')
-                                                , '(', '_')
-                                                , ')', '_')}"
+                                 th:id="'ID_'+${#strings.replace(#strings.replace(#strings.replace(#strings.replace(#strings.replace(object, '.', '_'), ' ', '_'), '/', '_'), '(', '_'), ')', '_')}"
                                  tabindex="-1" aria-labelledby="exampleModalLabel1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content" style="background: #333333; max-width: 80%">
@@ -209,16 +188,7 @@
                                                 <li>
                                                     <button type="button" class="dropdown-item" data-bs-toggle="modal"
                                                             th:data-bs-target="'#ID_'+${
-                                                            #strings.replace(
-                                                                #strings.replace(
-                                                                    #strings.replace(
-                                                                        #strings.replace(
-                                                                            #strings.replace(object
-                                                                            , '.', '_')
-                                                                            , ' ', '_')
-                                                                            , '/', '_')
-                                                                            , '(', '_')
-                                                                            , ')', '_')}">
+                                                            #strings.replace(#strings.replace(#strings.replace(#strings.replace(#strings.replace(object, '.', '_'), ' ', '_'), '/', '_'), '(', '_'), ')', '_')}">
                                                         Rename
                                                     </button>
                                                 </li>
@@ -238,7 +208,6 @@
                                                             <input type="hidden" name="path_to_object"
                                                                    th:value="${param.path.getFirst()}">
                                                         </div>
-
                                                     </form>
                                                 </li>
                                             </ul>
@@ -253,16 +222,7 @@
                         </div>
                         <form th:action="@{/rename-file}" method="post">
                             <div class="modal fade"
-                                 th:id="'ID_'+${#strings.replace(
-                                                    #strings.replace(
-                                                        #strings.replace(
-                                                            #strings.replace(
-                                                                #strings.replace(object
-                                                                , '.', '_')
-                                                                , ' ', '_')
-                                                                , '/', '_')
-                                                                , '(', '_')
-                                                                , ')', '_')}"
+                                 th:id="'ID_'+${#strings.replace(#strings.replace(#strings.replace(#strings.replace(#strings.replace(object, '.', '_'), ' ', '_'), '/', '_'), '(', '_'), ')', '_')}"
                                  tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content" style="background: #333333; max-width: 80%">
@@ -310,7 +270,6 @@
     </div>
 </div>
 
-
 <div sec:authorize="!isAuthenticated()">
     <div class="container">
         <div class="row">
@@ -318,7 +277,6 @@
         </div>
     </div>
 </div>
-
 
 <div th:replace="~{scripts-component}"></div>
 
