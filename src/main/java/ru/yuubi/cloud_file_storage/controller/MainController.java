@@ -1,7 +1,6 @@
 package ru.yuubi.cloud_file_storage.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.yuubi.cloud_file_storage.dao.MinioRepository;
 import ru.yuubi.cloud_file_storage.dto.SearchDto;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.CleanupService;
@@ -17,6 +15,8 @@ import ru.yuubi.cloud_file_storage.service.MinioService;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Controller
 public class MainController {
@@ -39,14 +39,10 @@ public class MainController {
         List<String> objectNames;
 
         if (pathToSubdirectory != null && !pathToSubdirectory.isBlank()) {
-
-            Map<String, String> breadcrumb = new LinkedHashMap<>();
+            Map<String, String> breadcrumb = createBreadcrumb(pathToSubdirectory);
             objectNames = minioService.getFormattedListOfObjectNamesInSubdirectory(userId, pathToSubdirectory);
-            fillBreadcrumb(breadcrumb, pathToSubdirectory);
             model.addAttribute("breadcrumb", breadcrumb);
-
         } else {
-
             objectNames = minioService.getFormattedListOfObjectNames(userId);
         }
 
@@ -66,9 +62,9 @@ public class MainController {
         }
 
         Integer userId = authService.getAuthenticatedUserId();
-        List<SearchDto> searchDtoList = minioService.searchFiles(searchQuery, userId);
+        Set<SearchDto> searchDtoSet = minioService.searchFiles(searchQuery, userId);
 
-        model.addAttribute("searchDtoList", searchDtoList);
+        model.addAttribute("searchDtoSet", searchDtoSet);
 
         return "search-page";
     }
@@ -150,7 +146,17 @@ public class MainController {
                                      @RequestParam(value = "path_to_object", required = false) String pathToObject,
                                      RedirectAttributes redirectAttributes) {
 
+        if(newObjectName.isBlank()) {
+            redirectAttributes.addAttribute("error", "empty_rename_form");
+            return "redirect:/main-page";
+        }
+
         if (newObjectName.equals(oldObjectName)) {
+            return "redirect:/main-page";
+        }
+
+        if (containsSpecialCharacters(newObjectName)) {
+            redirectAttributes.addAttribute("error", "special_character");
             return "redirect:/main-page";
         }
 
@@ -172,6 +178,16 @@ public class MainController {
                                           @RequestParam("old_directory_name") String oldDirectoryName,
                                           @RequestParam(value = "path_to_directory", required = false) String pathToDirectory,
                                           RedirectAttributes redirectAttributes) {
+
+        if(newDirectoryName.isBlank()) {
+            redirectAttributes.addAttribute("error", "empty_rename_form");
+            return "redirect:/main-page";
+        }
+
+        if(containsSpecialCharacters(newDirectoryName)) {
+            redirectAttributes.addAttribute("error", "special_character");
+            return "redirect:/main-page";
+        }
 
         newDirectoryName = newDirectoryName + "/";
 
@@ -196,7 +212,10 @@ public class MainController {
         return "redirect:/main-page";
     }
 
-    private void fillBreadcrumb(Map<String, String> breadcrumb, String subdirectory) {
+    private Map<String, String> createBreadcrumb(String subdirectory) {
+
+        Map<String, String> breadcrumb = new LinkedHashMap<>();
+
         String baseUrl = "/main-page";
         breadcrumb.put(baseUrl, "Main");
 
@@ -209,5 +228,15 @@ public class MainController {
             String url = String.format("%s?path=%s", baseUrl, pathBuilder);
             breadcrumb.put(url, path);
         }
+
+        return breadcrumb;
+    }
+    public boolean containsSpecialCharacters(String name) {
+        String regex = "[/\\\\<>*?|:]";
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(name);
+
+        return matcher.find();
     }
 }

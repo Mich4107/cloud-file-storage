@@ -9,7 +9,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import javax.sql.DataSource;
 
 @TestConfiguration
-public class TestContainersConfig {
+public class PostgreTestContainerConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     public PostgreSQLContainer<?> postgreSQLContainer() {

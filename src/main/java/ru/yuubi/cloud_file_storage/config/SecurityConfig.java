@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import ru.yuubi.cloud_file_storage.service.security.CustomUserDetailsService;
 
@@ -25,11 +27,16 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
+//    @Bean
+//    public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+//        return new ChangeSessionIdAuthenticationStrategy();
+//    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests((authz) -> authz
+                .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/main-page", "/sign-up", "/static/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(formLogin -> formLogin
@@ -38,11 +45,11 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/main-page", true)
                         .failureUrl("/sign-in?error=true")
                         .permitAll())
-                .logout((logout) -> logout
+                .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/sign-out", "POST"))
-                        .deleteCookies("JSESSIONID")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
+//                        .deleteCookies()
+//                        .invalidateHttpSession(true)
+//                        .clearAuthentication(true)
                         .logoutSuccessUrl("/sign-in")
                 );
         return http.build();

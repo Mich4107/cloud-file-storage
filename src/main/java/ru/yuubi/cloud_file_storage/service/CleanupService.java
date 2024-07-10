@@ -24,7 +24,7 @@ public class CleanupService {
         filesToDelete.put(objectName, LocalDateTime.now().plusHours(1));
     }
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS)
+    @Scheduled(fixedRate = 20, timeUnit = TimeUnit.MINUTES)
     public void deleteFile() {
         filesToDelete.forEach((key, value) -> {
             if (LocalDateTime.now().isAfter(value)) {

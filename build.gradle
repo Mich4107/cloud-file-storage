@@ -34,13 +34,18 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.3.0'
 	implementation group: 'io.minio', name: 'minio', version: '8.5.10'
 
+	implementation 'org.springframework.session:spring-session-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'redis.clients:jedis'
+
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.7'
+	testImplementation 'org.testcontainers:minio:1.19.7'
 	testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.19.7'
 	testImplementation group: 'org.testcontainers', name: 'testcontainers', version: '1.19.7'
 

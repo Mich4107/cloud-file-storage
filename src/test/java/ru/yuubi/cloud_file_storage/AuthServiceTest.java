@@ -11,7 +11,7 @@ import ru.yuubi.cloud_file_storage.service.AuthService;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
-@SpringBootTest(classes = TestContainersConfig.class)
+@SpringBootTest(classes = PostgreTestContainerConfig.class)
 public class AuthServiceTest {
 
     @Autowired

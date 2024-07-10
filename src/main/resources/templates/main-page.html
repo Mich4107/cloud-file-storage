@@ -12,20 +12,26 @@
 
 </head>
 <body class="bg-my-dark-color">
-
 <div th:replace="~{header-component}"></div>
 <div th:replace="~{search-add-files-component}"></div>
-
+<div class="container" style="margin-right: 20px; margin-top: 10px">
+    <span th:if="${param.error != null}">
+        <span th:if="${param.error.getFirst().equals('empty_form')}">
+            <span style="color: orangered; font-size: 15px; margin-left: 50px">Select file(s) / directory before upload</span>
+        </span>
+        <span th:if="${param.error.getFirst().equals('empty_rename_form')}">
+            <span style="color: orangered; font-size: 15px; margin-left: 50px">Name cannot be empty</span>
+        </span>
+        <span th:if="${param.error.getFirst().equals('special_character')}">
+            <span style="color: orangered; font-size: 15px; margin-left: 50px">Name can't contain any of the following characters: \ / : * ? < > |</span>
+        </span>
+    </span>
+</div>
 <div th:if="${!objects.isEmpty()}">
     <div class="container">
         <div class="row g-3" style="margin-top: 15px">
             <div th:if="${breadcrumb == null}">
                 <span style="margin-left: 33px">Name</span>
-                <span th:if="${param.error != null}">
-                    <span th:if="${param.error.getFirst().equals('empty_form')}">
-                        <span style="color: orangered; font-size: 15px; margin-left: 50px">Select file(s) / directory before upload</span>
-                    </span>
-                </span>
             </div>
 
             <div th:if="${breadcrumb != null}">

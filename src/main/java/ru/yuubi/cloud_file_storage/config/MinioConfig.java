@@ -56,6 +56,4 @@ public class MinioConfig {
             throw new RuntimeException(e);
         }
     }
-
-
 }

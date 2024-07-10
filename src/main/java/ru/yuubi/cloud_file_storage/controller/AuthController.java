@@ -36,7 +36,7 @@ public class AuthController {
     @PostMapping("/sign-up")
     public String registerUser(@Valid @ModelAttribute("user") UserDto userDto,
                                BindingResult bindingResult,
-                               @RequestParam("passwordCheck") String passwordCheck,
+                               @RequestParam("password_check") String passwordCheck,
                                Model model,
                                HttpServletRequest request) {
 

@@ -16,10 +16,10 @@
 
 <div th:replace="~{search-add-files-component}"></div>
 
-<div th:if="${!searchDtoList.isEmpty()}">
+<div th:if="${!searchDtoSet.isEmpty()}">
     <div class="container">
         <div class="row g-3" style="margin-top: 15px">
-            <div th:each="searchDto : ${searchDtoList}">
+            <div th:each="searchDto : ${searchDtoSet}">
                 <div class="col-lg-12 col-md-12 col-12" style="height: auto;">
                     <div th:if="${#strings.endsWith(searchDto.getName(), '/')}">
                         <div class="border rounded p-2 position-relative" style="height: auto;">
@@ -89,7 +89,7 @@
         </div>
     </div>
 </div>
-<div th:if="${searchDtoList.isEmpty()}">
+<div th:if="${searchDtoSet.isEmpty()}">
     <div class="container">
         <div class="row">
             <span style="margin-top: 40px; font-size: 20px; color: #009578;">Search yielded no results. Try another request</span>

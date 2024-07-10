@@ -1,6 +1,6 @@
 package ru.yuubi.cloud_file_storage.service;
 
-import io.minio.*;
+import io.minio.Result;
 import io.minio.errors.*;
 import io.minio.messages.Item;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,12 +27,12 @@ public class MinioService {
         this.minioRepository = minioRepository;
     }
 
-    public List<SearchDto> searchFiles(String query, Integer userId) {
+    public Set<SearchDto> searchFiles(String query, Integer userId) {
 
         String userPath = String.format(basePath, userId);
         Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath);
 
-        List<SearchDto> searchDtoList = new ArrayList<>();
+        Set<SearchDto> searchDtoSet = new HashSet<>();
 
         for (Result<Item> result : results) {
             Item item = getItemFromResult(result);
@@ -40,14 +40,14 @@ public class MinioService {
             String objectName = item.objectName();
             objectName = removePackagesFromString(objectName, userPath);
 
-            searchProcess(objectName, searchDtoList, query);
+            searchProcess(objectName, searchDtoSet, query);
         }
 
-        return searchDtoList;
+        return searchDtoSet;
 
     }
 
-    private void searchProcess(String objectName, List<SearchDto> searchDtoList, String query) {
+    private void searchProcess(String objectName, Set<SearchDto> searchDtoSet, String query) {
 
         if (isNameContainsQuery(objectName, query)) {
 
@@ -55,14 +55,14 @@ public class MinioService {
             boolean isSingleObject = names.length == 1;
 
             if (isSingleObject) {
-                searchDtoList.add(new SearchDto("", objectName));
+                searchDtoSet.add(new SearchDto("", objectName));
             } else {
-                findingMatchesInNames(names, objectName, searchDtoList, query);
+                findingMatchesInNames(names, objectName, searchDtoSet, query);
             }
         }
     }
 
-    private void findingMatchesInNames(String[] names, String objectName, List<SearchDto> searchDtoList, String query) {
+    private void findingMatchesInNames(String[] names, String objectName, Set<SearchDto> searchDtoSet, String query) {
         StringBuilder pathBuilder = new StringBuilder();
 
         for (int i = 0; i < names.length; i++) {
@@ -71,7 +71,7 @@ public class MinioService {
 
             if (!isLastElement) {
                 if (isNameContainsQuery(name, query)) {
-                    searchDtoList.add(new SearchDto(pathBuilder.toString(), name + "/"));
+                    searchDtoSet.add(new SearchDto(pathBuilder.toString(), name + "/"));
                 }
                 pathBuilder.append(name).append("/");
             } else {
@@ -80,7 +80,7 @@ public class MinioService {
                     if (isLastObjectPackage) {
                         name = name + "/";
                     }
-                    searchDtoList.add(new SearchDto(pathBuilder.toString(), name));
+                    searchDtoSet.add(new SearchDto(pathBuilder.toString(), name));
                 }
             }
         }
