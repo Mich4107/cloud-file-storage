@@ -217,17 +217,10 @@ public class MinioService {
 
 
     public void uploadFiles(MultipartFile[] files, Integer userId, String pathToUpload) {
-        long start = System.currentTimeMillis();
-
         String userPath = String.format(basePath, userId);
-
         for (MultipartFile file : files) {
             uploadFile(file, userPath, pathToUpload);
         }
-
-        long end = System.currentTimeMillis();
-        long result = end - start;
-        System.out.println("It takes: " + result);
     }
 
     private void uploadFile(MultipartFile file, String userPath, String pathToUpload) {
