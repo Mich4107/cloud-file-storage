@@ -8,15 +8,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.yuubi.cloud_file_storage.dto.SearchDto;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.CleanupService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
+import ru.yuubi.cloud_file_storage.util.ControllerUtil;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Controller
 public class MainController {
@@ -39,7 +37,7 @@ public class MainController {
         List<String> objectNames;
 
         if (pathToSubdirectory != null && !pathToSubdirectory.isBlank()) {
-            Map<String, String> breadcrumb = createBreadcrumb(pathToSubdirectory);
+            Map<String, String> breadcrumb = ControllerUtil.createBreadcrumb(pathToSubdirectory);
             objectNames = minioService.getFormattedListOfObjectNamesInSubdirectory(userId, pathToSubdirectory);
             model.addAttribute("breadcrumb", breadcrumb);
         } else {
@@ -51,28 +49,10 @@ public class MainController {
         return "main-page";
     }
 
-    @GetMapping("/search")
-    public String handleSearch(@RequestParam("query") String searchQuery,
-                               RedirectAttributes redirectAttributes,
-                               Model model) {
-
-        if (searchQuery.isBlank()) {
-            redirectAttributes.addAttribute("error", "empty_query");
-            return "redirect:/main-page";
-        }
-
-        Integer userId = authService.getAuthenticatedUserId();
-        Set<SearchDto> searchDtoSet = minioService.searchFiles(searchQuery, userId);
-
-        model.addAttribute("searchDtoSet", searchDtoSet);
-
-        return "search-page";
-    }
-
-    @PostMapping("/add-files")
-    public String handleUploadFile(@RequestParam("files") MultipartFile[] files,
-                                   @RequestParam(value = "upload_path", required = false) String pathToUpload,
-                                   RedirectAttributes redirectAttributes) {
+    @PostMapping("/upload")
+    public String handleUploading(@RequestParam("files") MultipartFile[] files,
+                                  @RequestParam(value = "upload_path", required = false) String pathToUpload,
+                                  RedirectAttributes redirectAttributes) {
 
         String fileName = files[0].getOriginalFilename();
 
@@ -92,39 +72,6 @@ public class MainController {
         return "redirect:/main-page";
     }
 
-    @PostMapping("/delete-file")
-    public String handleDeletingFile(@RequestParam("object_name") String objectName,
-                                     @RequestParam(value = "path_to_object", required = false) String pathToObject,
-                                     RedirectAttributes redirectAttributes) {
-
-        Integer userId = authService.getAuthenticatedUserId();
-        minioService.removeObject(objectName, userId, pathToObject);
-
-        if (pathToObject != null) {
-            redirectAttributes.addAttribute("path", pathToObject);
-        }
-
-        return "redirect:/main-page";
-
-    }
-
-    @PostMapping("/delete-directory")
-    public String handleDeletingDirectory(@RequestParam("directory_name") String directoryName,
-                                          @RequestParam(value = "path_to_object", required = false) String pathToObject,
-                                          RedirectAttributes redirectAttributes) {
-
-        Integer userId = authService.getAuthenticatedUserId();
-        minioService.removeDirectory(directoryName, userId, pathToObject);
-
-        if (pathToObject != null) {
-            redirectAttributes.addAttribute("path", pathToObject);
-        }
-
-        return "redirect:/main-page";
-
-    }
-
-
     @PostMapping("/download")
     public void handleDownloading(@RequestParam("name") String name,
                                   HttpServletResponse response) throws IOException {
@@ -140,103 +87,4 @@ public class MainController {
         response.sendRedirect(url);
     }
 
-    @PostMapping("/rename-file")
-    public String handleRenamingFile(@RequestParam("new_object_name") String newObjectName,
-                                     @RequestParam("old_object_name") String oldObjectName,
-                                     @RequestParam(value = "path_to_object", required = false) String pathToObject,
-                                     RedirectAttributes redirectAttributes) {
-
-        if(newObjectName.isBlank()) {
-            redirectAttributes.addAttribute("error", "empty_rename_form");
-            return "redirect:/main-page";
-        }
-
-        if (newObjectName.equals(oldObjectName)) {
-            return "redirect:/main-page";
-        }
-
-        if (containsSpecialCharacters(newObjectName)) {
-            redirectAttributes.addAttribute("error", "special_character");
-            return "redirect:/main-page";
-        }
-
-        if (pathToObject != null) {
-            newObjectName = pathToObject + newObjectName;
-            oldObjectName = pathToObject + oldObjectName;
-
-            redirectAttributes.addAttribute("path", pathToObject);
-        }
-
-        Integer userId = authService.getAuthenticatedUserId();
-        minioService.renameObject(oldObjectName, newObjectName, userId);
-
-        return "redirect:/main-page";
-    }
-
-    @PostMapping("/rename-directory")
-    public String handleRenamingDirectory(@RequestParam("new_directory_name") String newDirectoryName,
-                                          @RequestParam("old_directory_name") String oldDirectoryName,
-                                          @RequestParam(value = "path_to_directory", required = false) String pathToDirectory,
-                                          RedirectAttributes redirectAttributes) {
-
-        if(newDirectoryName.isBlank()) {
-            redirectAttributes.addAttribute("error", "empty_rename_form");
-            return "redirect:/main-page";
-        }
-
-        if(containsSpecialCharacters(newDirectoryName)) {
-            redirectAttributes.addAttribute("error", "special_character");
-            return "redirect:/main-page";
-        }
-
-        newDirectoryName = newDirectoryName + "/";
-
-        if (newDirectoryName.equals(oldDirectoryName)) {
-            redirectAttributes.addAttribute("path", pathToDirectory);
-            return "redirect:/main-page";
-        }
-
-        if (pathToDirectory != null) {
-            newDirectoryName = pathToDirectory + newDirectoryName;
-            oldDirectoryName = pathToDirectory + oldDirectoryName;
-        }
-
-        Integer userId = authService.getAuthenticatedUserId();
-        minioService.renameDirectory(oldDirectoryName, newDirectoryName, userId);
-
-        if (pathToDirectory != null) {
-            redirectAttributes.addAttribute("path", pathToDirectory);
-            return "redirect:/main-page";
-        }
-
-        return "redirect:/main-page";
-    }
-
-    private Map<String, String> createBreadcrumb(String subdirectory) {
-
-        Map<String, String> breadcrumb = new LinkedHashMap<>();
-
-        String baseUrl = "/main-page";
-        breadcrumb.put(baseUrl, "Main");
-
-        String[] paths = subdirectory.split("/");
-
-        StringBuilder pathBuilder = new StringBuilder();
-
-        for (String path : paths) {
-            pathBuilder.append(path).append("/");
-            String url = String.format("%s?path=%s", baseUrl, pathBuilder);
-            breadcrumb.put(url, path);
-        }
-
-        return breadcrumb;
-    }
-    public boolean containsSpecialCharacters(String name) {
-        String regex = "[/\\\\<>*?|:]";
-
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(name);
-
-        return matcher.find();
-    }
 }
