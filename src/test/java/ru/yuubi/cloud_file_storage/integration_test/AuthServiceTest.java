@@ -23,16 +23,12 @@ public class AuthServiceTest {
 
     @MockBean
     private MainController mainController;
-
     @MockBean
     private MinioService minioService;
-
     @MockBean
     private MinioRepository minioRepository;
-
     @MockBean
     private MinioClient minioClient;
-
     @MockBean
     private MinioConfig minioConfig;
 

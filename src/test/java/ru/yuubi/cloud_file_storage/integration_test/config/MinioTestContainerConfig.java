@@ -28,7 +28,6 @@ public class MinioTestContainerConfig {
     }
 
     @Bean
-    @Primary
     public MinioClient minioClient(GenericContainer<?> minioContainer) throws Exception {
         String minioUrl = String.format("http://%S:%d",
                 minioContainer.getHost(),

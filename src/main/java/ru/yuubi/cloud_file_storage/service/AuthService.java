@@ -27,10 +27,8 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    /*
-       An explicit authentication process so that you don't have to enter data again after /sign-up. (When we use /sign-in,
-       Spring does it for us, because of Security configuration)
-     */
+    // An explicit authentication process so that you don't have to enter data again after /sign-up. (When we use /sign-in,
+    // Spring does it for us, because of Security configuration)
     public void authenticateUser(String login, String password) {
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(login, password);

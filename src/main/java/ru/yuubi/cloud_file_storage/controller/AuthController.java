@@ -53,14 +53,7 @@ public class AuthController {
             }
             authService.createUser(login, password);
             authService.authenticateUser(login, password);
-
-            /*
-              HttpSession stores the SecurityContext attribute, which stores the Authentication header, which contains user authentication,
-              and we need an explicit process of setting this attribute after manual authentication
-             */
-            HttpSession session = request.getSession(true);
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+            setSecurityContext(request);
 
             return "redirect:/main-page";
 
@@ -68,6 +61,16 @@ public class AuthController {
             model.addAttribute("errorMessage", e.getMessage());
             return "sign-up";
         }
+    }
+
+    private void setSecurityContext(HttpServletRequest request) {
+
+        // HttpSession stores the SecurityContext attribute, which stores the Authentication header, which contains user authentication,
+        // and we need an explicit process of setting this attribute after manual authentication
+
+        HttpSession session = request.getSession(true);
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
     }
 
     public AuthController(AuthService authService) {

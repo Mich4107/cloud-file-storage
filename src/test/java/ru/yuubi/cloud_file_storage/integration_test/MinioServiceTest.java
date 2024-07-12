@@ -34,6 +34,7 @@ public class MinioServiceTest {
     private static final String FILE = "file.txt";
     private static final String DIRECTORY = "pathTo/";
     private static final String FILE_TEXT = "test";
+    private static final String ADDITIONAL_PATH = "some/additional/path/";
     private static Integer userId = 0;
 
     @Autowired
@@ -95,7 +96,7 @@ public class MinioServiceTest {
     }
 
     @Test
-    public void removeDirectory_thenDirectoryRemovedSuccessfully() {
+    public void removeDirectory_thenAllFilesInDirectoryRemovedSuccessfully() {
         MockMultipartFile[] mockFiles = createMockFile(DIRECTORY+FILE);
 
         minioService.uploadFiles(mockFiles, userId, null);
@@ -104,6 +105,18 @@ public class MinioServiceTest {
         List<String> list = minioService.getFormattedListOfObjectNames(userId);
 
         assertThat(list).isEmpty();
+    }
+
+    @Test
+    public void removeFile_inDirectoryWithOneFile_thenDirectoryStillAvailable() {
+        MockMultipartFile[] mockFiles = createMockFile(DIRECTORY+FILE);
+
+        minioService.uploadFiles(mockFiles, userId, null);
+        minioService.removeObject(FILE, userId, DIRECTORY);
+
+        List<String> list = minioService.getFormattedListOfObjectNames(userId);
+
+        assertThat(list).contains(DIRECTORY);
     }
 
     @Test
