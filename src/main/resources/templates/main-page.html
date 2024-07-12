@@ -25,6 +25,9 @@
         <span th:if="${param.error.getFirst().equals('special_character')}">
             <span style="color: orangered; font-size: 15px; margin-left: 50px">Name can't contain any of the following characters: \ / : * ? < > |</span>
         </span>
+        <span th:if="${param.error.getFirst().equals('character_limit')}">
+            <span style="color: orangered; font-size: 15px; margin-left: 50px">Max length of name can be 220 characters</span>
+        </span>
     </span>
 </div>
 <div th:if="${!objects.isEmpty()}">

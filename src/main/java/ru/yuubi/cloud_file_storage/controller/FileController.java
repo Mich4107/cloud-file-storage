@@ -25,12 +25,21 @@ public class FileController {
                                      @RequestParam(value = "path_to_object", required = false) String pathToObject,
                                      RedirectAttributes redirectAttributes) {
 
+        if (pathToObject != null) {
+            redirectAttributes.addAttribute("path", pathToObject);
+        }
+
         if(newObjectName.isBlank()) {
             redirectAttributes.addAttribute("error", "empty_rename_form");
             return "redirect:/main-page";
         }
 
         if (newObjectName.equals(oldObjectName)) {
+            return "redirect:/main-page";
+        }
+
+        if (newObjectName.length() > ControllerUtil.CHARACTER_LIMIT) {
+            redirectAttributes.addAttribute("error", "character_limit");
             return "redirect:/main-page";
         }
 
@@ -42,8 +51,6 @@ public class FileController {
         if (pathToObject != null) {
             newObjectName = pathToObject + newObjectName;
             oldObjectName = pathToObject + oldObjectName;
-
-            redirectAttributes.addAttribute("path", pathToObject);
         }
 
         Integer userId = authService.getAuthenticatedUserId();

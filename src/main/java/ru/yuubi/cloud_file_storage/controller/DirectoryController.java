@@ -25,8 +25,17 @@ public class DirectoryController {
                                           @RequestParam(value = "path_to_directory", required = false) String pathToDirectory,
                                           RedirectAttributes redirectAttributes) {
 
+        if (pathToDirectory != null) {
+            redirectAttributes.addAttribute("path", pathToDirectory);
+        }
+
         if(newDirectoryName.isBlank()) {
             redirectAttributes.addAttribute("error", "empty_rename_form");
+            return "redirect:/main-page";
+        }
+
+        if (newDirectoryName.length() > ControllerUtil.CHARACTER_LIMIT) {
+            redirectAttributes.addAttribute("error", "character_limit");
             return "redirect:/main-page";
         }
 
@@ -49,11 +58,6 @@ public class DirectoryController {
 
         Integer userId = authService.getAuthenticatedUserId();
         minioService.renameDirectory(oldDirectoryName, newDirectoryName, userId);
-
-        if (pathToDirectory != null) {
-            redirectAttributes.addAttribute("path", pathToDirectory);
-            return "redirect:/main-page";
-        }
 
         return "redirect:/main-page";
     }

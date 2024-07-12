@@ -1,12 +1,12 @@
-package ru.yuubi.cloud_file_storage;
+package ru.yuubi.cloud_file_storage.integration_test;
 
 import io.minio.MinioClient;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import ru.yuubi.cloud_file_storage.integration_test.config.PostgreTestContainerConfig;
 import ru.yuubi.cloud_file_storage.config.MinioConfig;
 import ru.yuubi.cloud_file_storage.controller.MainController;
 import ru.yuubi.cloud_file_storage.dao.MinioRepository;

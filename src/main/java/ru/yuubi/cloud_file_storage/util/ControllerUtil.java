@@ -7,6 +7,8 @@ import java.util.regex.Pattern;
 
 public class ControllerUtil {
 
+    public static final int CHARACTER_LIMIT = 220;
+
     public static boolean containsSpecialCharacters(String name) {
         String regex = "[/\\\\<>*?|:]";
 

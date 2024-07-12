@@ -1,4 +1,4 @@
-package ru.yuubi.cloud_file_storage;
+package ru.yuubi.cloud_file_storage.integration_test.config;
 
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -33,8 +33,6 @@ public class MinioTestContainerConfig {
         String minioUrl = String.format("http://%S:%d",
                 minioContainer.getHost(),
                 minioContainer.getMappedPort(CONTAINER_PORT)); //automatically finds open port for exchange (example: 58920)
-
-        System.out.println("\n\n\n\n\n port: "+minioContainer.getMappedPort(CONTAINER_PORT)+" \n\n\n\n\n");
 
         MinioClient minioClient = MinioClient.builder()
                 .endpoint(minioUrl)

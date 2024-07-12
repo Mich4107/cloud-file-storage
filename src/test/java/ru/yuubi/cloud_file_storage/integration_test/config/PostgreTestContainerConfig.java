@@ -1,4 +1,4 @@
-package ru.yuubi.cloud_file_storage;
+package ru.yuubi.cloud_file_storage.integration_test.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
