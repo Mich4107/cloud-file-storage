@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.CleanupService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
-import ru.yuubi.cloud_file_storage.util.ControllerUtil;
+import ru.yuubi.cloud_file_storage.util.BreadcrumbUtil;
 
 import java.io.IOException;
 import java.util.*;
@@ -37,7 +37,7 @@ public class MainController {
         List<String> objectNames;
 
         if (pathToSubdirectory != null && !pathToSubdirectory.isBlank()) {
-            Map<String, String> breadcrumb = ControllerUtil.createBreadcrumb(pathToSubdirectory);
+            Map<String, String> breadcrumb = BreadcrumbUtil.createBreadcrumb(pathToSubdirectory);
             objectNames = minioService.getFormattedListOfObjectNamesInSubdirectory(userId, pathToSubdirectory);
             model.addAttribute("breadcrumb", breadcrumb);
         } else {

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
-import ru.yuubi.cloud_file_storage.util.ControllerUtil;
+import ru.yuubi.cloud_file_storage.util.ValidationUtil;
 
 @Controller
 public class DirectoryController {
@@ -34,12 +34,12 @@ public class DirectoryController {
             return "redirect:/main-page";
         }
 
-        if (newDirectoryName.length() > ControllerUtil.CHARACTER_LIMIT) {
+        if (newDirectoryName.length() > ValidationUtil.CHARACTER_LIMIT) {
             redirectAttributes.addAttribute("error", "character_limit");
             return "redirect:/main-page";
         }
 
-        if(ControllerUtil.containsSpecialCharacters(newDirectoryName)) {
+        if(ValidationUtil.containsSpecialCharacters(newDirectoryName)) {
             redirectAttributes.addAttribute("error", "special_character");
             return "redirect:/main-page";
         }
