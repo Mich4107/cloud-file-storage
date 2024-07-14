@@ -1,8 +1,10 @@
 package ru.yuubi.cloud_file_storage.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.dto.SearchDto;
@@ -12,17 +14,14 @@ import ru.yuubi.cloud_file_storage.service.MinioService;
 import java.util.Set;
 
 @Controller
+@RequestMapping("/search")
+@RequiredArgsConstructor
 public class SearchController {
 
     private final AuthService authService;
     private final MinioService minioService;
 
-    public SearchController(AuthService authService, MinioService minioService) {
-        this.authService = authService;
-        this.minioService = minioService;
-    }
-
-    @GetMapping("/search")
+    @GetMapping
     public String handleSearch(@RequestParam("query") String searchQuery,
                                RedirectAttributes redirectAttributes,
                                Model model) {

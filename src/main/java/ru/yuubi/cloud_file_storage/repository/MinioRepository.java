@@ -1,4 +1,4 @@
-package ru.yuubi.cloud_file_storage.dao;
+package ru.yuubi.cloud_file_storage.repository;
 
 import io.minio.*;
 import io.minio.errors.*;

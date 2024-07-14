@@ -4,7 +4,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import ru.yuubi.cloud_file_storage.dao.UserRepository;
+import ru.yuubi.cloud_file_storage.repository.UserRepository;
 import ru.yuubi.cloud_file_storage.entity.User;
 
 import java.util.Collections;

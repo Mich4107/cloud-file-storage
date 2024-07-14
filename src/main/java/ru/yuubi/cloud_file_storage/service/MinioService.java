@@ -6,7 +6,7 @@ import io.minio.messages.Item;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import ru.yuubi.cloud_file_storage.dao.MinioRepository;
+import ru.yuubi.cloud_file_storage.repository.MinioRepository;
 import ru.yuubi.cloud_file_storage.dto.SearchDto;
 
 import java.io.*;

@@ -1,5 +1,6 @@
 package ru.yuubi.cloud_file_storage.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,17 +16,15 @@ import ru.yuubi.cloud_file_storage.util.ValidationUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Controller
+@RequiredArgsConstructor
 public class DirectoryController {
 
     private final AuthService authService;
     private final MinioService minioService;
-
-    public DirectoryController(AuthService authService, MinioService minioService) {
-        this.authService = authService;
-        this.minioService = minioService;
-    }
 
     @PostMapping("/download-directory")
     public ResponseEntity<InputStreamResource> handleDownloadingDirectory(@RequestParam("name") String name) throws IOException {
@@ -35,9 +34,10 @@ public class DirectoryController {
         InputStreamResource resource = new InputStreamResource(inputStream);
 
         String zipName = FormatUtil.formatNameToZip(name);
+        String encodedZipName = URLEncoder.encode(zipName, StandardCharsets.UTF_8).replace("+", "%20");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", zipName);
+        headers.setContentDispositionFormData("attachment", encodedZipName);
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
         return ResponseEntity.ok()

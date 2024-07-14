@@ -3,6 +3,7 @@ package ru.yuubi.cloud_file_storage.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -19,7 +20,9 @@ import ru.yuubi.cloud_file_storage.exception.WrongDataException;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 
 @Controller
+@RequiredArgsConstructor
 public class AuthController {
+
     private final AuthService authService;
 
     @GetMapping("/sign-in")
@@ -72,9 +75,5 @@ public class AuthController {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
     }
-
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
-
 }
+

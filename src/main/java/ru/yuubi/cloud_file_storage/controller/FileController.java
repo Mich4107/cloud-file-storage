@@ -1,5 +1,6 @@
 package ru.yuubi.cloud_file_storage.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,17 +15,15 @@ import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
 
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Controller
+@RequiredArgsConstructor
 public class FileController {
 
     private final AuthService authService;
     private final MinioService minioService;
-
-    public FileController(AuthService authService, MinioService minioService) {
-        this.authService = authService;
-        this.minioService = minioService;
-    }
 
     @PostMapping("/download-file")
     public ResponseEntity<InputStreamResource> handleDownloading(@RequestParam("name") String name) {
@@ -33,10 +32,11 @@ public class FileController {
         InputStreamResource resource = new InputStreamResource(inputStream);
 
         name = FormatUtil.clearPackagesFromName(name);
+        String encodedName = URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", name);
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", encodedName);
 
         return ResponseEntity.ok()
                 .headers(headers)

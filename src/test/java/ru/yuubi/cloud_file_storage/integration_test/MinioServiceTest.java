@@ -10,11 +10,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.yuubi.cloud_file_storage.integration_test.config.MinioTestContainerConfig;
-import ru.yuubi.cloud_file_storage.dao.UserRepository;
+import ru.yuubi.cloud_file_storage.repository.UserRepository;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;

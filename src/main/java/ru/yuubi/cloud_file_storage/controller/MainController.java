@@ -1,5 +1,6 @@
 package ru.yuubi.cloud_file_storage.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,15 +15,11 @@ import ru.yuubi.cloud_file_storage.util.BreadcrumbUtil;
 import java.util.*;
 
 @Controller
+@RequiredArgsConstructor
 public class MainController {
 
     private final MinioService minioService;
     private final AuthService authService;
-
-    public MainController(MinioService minioService, AuthService authService) {
-        this.minioService = minioService;
-        this.authService = authService;
-    }
 
     @GetMapping("/main-page")
     public String getMainPage(@RequestParam(name = "path", required = false) String pathToSubdirectory,
