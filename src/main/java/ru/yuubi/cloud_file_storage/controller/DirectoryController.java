@@ -1,12 +1,20 @@
 package ru.yuubi.cloud_file_storage.controller;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
+import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @Controller
 public class DirectoryController {
@@ -17,6 +25,24 @@ public class DirectoryController {
     public DirectoryController(AuthService authService, MinioService minioService) {
         this.authService = authService;
         this.minioService = minioService;
+    }
+
+    @PostMapping("/download-directory")
+    public ResponseEntity<InputStreamResource> handleDownloadingDirectory(@RequestParam("name") String name) throws IOException {
+        Integer userId = authService.getAuthenticatedUserId();
+        InputStream inputStream = minioService.createZipFile(name, userId);
+
+        InputStreamResource resource = new InputStreamResource(inputStream);
+
+        String zipName = FormatUtil.formatNameToZip(name);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", zipName);
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
     }
 
     @PostMapping("/rename-directory")

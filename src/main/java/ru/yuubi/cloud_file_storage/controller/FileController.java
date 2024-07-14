@@ -1,12 +1,19 @@
 package ru.yuubi.cloud_file_storage.controller;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
+import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
+
+import java.io.InputStream;
 
 @Controller
 public class FileController {
@@ -17,6 +24,23 @@ public class FileController {
     public FileController(AuthService authService, MinioService minioService) {
         this.authService = authService;
         this.minioService = minioService;
+    }
+
+    @PostMapping("/download-file")
+    public ResponseEntity<InputStreamResource> handleDownloading(@RequestParam("name") String name) {
+        Integer userId = authService.getAuthenticatedUserId();
+        InputStream inputStream = minioService.getObjectInputStream(name, userId);
+        InputStreamResource resource = new InputStreamResource(inputStream);
+
+        name = FormatUtil.clearPackagesFromName(name);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", name);
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
     }
 
     @PostMapping("/rename-file")

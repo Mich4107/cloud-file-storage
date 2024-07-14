@@ -92,33 +92,36 @@ public class MinioService {
         return name.matches(".*" + query + ".*");
     }
 
-    public String getDownloadUrl(String name, Integer userId) throws IOException {
-        Map<String, String> reqParams = new HashMap<>();
-        reqParams.put("response-content-disposition", "attachment");
-        boolean isPackage = name.endsWith("/");
-
-        if (isPackage) {
-            return getDownloadUrlForDirectory(name, userId, reqParams);
-        } else {
-            return getDownloadUrlForFile(name, userId, reqParams);
-        }
+    public InputStream getObjectInputStream(String name, Integer userId) {
+        String userPath = String.format(basePath, userId);
+        return minioRepository.getObjectInputStream(userPath+name);
     }
 
-    private String getDownloadUrlForDirectory(String name, Integer userId, Map<String, String> reqParams) throws IOException {
+    public InputStream createZipFile(String name, Integer userId) throws IOException {
         String userPath = String.format(basePath, userId);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try (ZipOutputStream zipOut = new ZipOutputStream(baos)) {
             Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath + name);
-            createZipFile(results, zipOut, userPath + name);
+            String packagesToRemove = getPackagesBeforeName(name);
+            fillZipFile(results, zipOut, userPath + packagesToRemove);
         }
         byte[] zipData = baos.toByteArray();
-        String zipObjectName = uploadZipFile(zipData, userId, name);
-
-        return minioRepository.getPresignedObjectUrl(zipObjectName, reqParams);
+        return new ByteArrayInputStream(zipData);
     }
 
-    private void createZipFile(Iterable<Result<Item>> results, ZipOutputStream zipOut, String packagesToRemove) throws IOException {
+    private String getPackagesBeforeName(String name) {
+        String[] split = name.split("/");
+        StringBuilder pathBuilder = new StringBuilder();
+        for (int i = 0; i < split.length; i++) {
+            if(i < split.length - 1) {
+                pathBuilder.append(split[i]).append("/");
+            }
+        }
+        return pathBuilder.toString();
+    }
+
+    private void fillZipFile(Iterable<Result<Item>> results, ZipOutputStream zipOut, String packagesToRemove) throws IOException {
         for (Result<Item> result : results) {
             Item item = getItemFromResult(result);
             if (!item.isDir()) {
@@ -172,8 +175,7 @@ public class MinioService {
 
     private String createZipName(String name) {
         String[] strings = name.split("/");
-        int length = strings.length;
-        return strings[length - 1] + ".zip";
+        return strings[strings.length - 1] + ".zip";
     }
 
     private String getDownloadUrlForFile(String name, Integer userId, Map<String, String> reqParams) {

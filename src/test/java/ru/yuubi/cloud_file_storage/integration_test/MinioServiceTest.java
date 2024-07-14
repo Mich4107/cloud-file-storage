@@ -34,7 +34,6 @@ public class MinioServiceTest {
     private static final String FILE = "file.txt";
     private static final String DIRECTORY = "pathTo/";
     private static final String FILE_TEXT = "test";
-    private static final String ADDITIONAL_PATH = "some/additional/path/";
     private static Integer userId = 0;
 
     @Autowired
@@ -117,31 +116,6 @@ public class MinioServiceTest {
         List<String> list = minioService.getFormattedListOfObjectNames(userId);
 
         assertThat(list).contains(DIRECTORY);
-    }
-
-    @Test
-    public void getDownloadUrlForFile_thenUrlGeneratedSuccessfully() throws IOException {
-        MockMultipartFile[] mockFiles = createMockFile(DIRECTORY+FILE);
-        String name = mockFiles[0].getOriginalFilename();
-
-        minioService.uploadFiles(mockFiles, userId, null);
-        String url = minioService.getDownloadUrl(name, userId);
-        String fileNameInUrl = url.replaceAll(".*("+name+").*", "$1");
-
-        assertEquals(name, fileNameInUrl);
-    }
-
-    @Test
-    public void getDownloadUrlForDirectory_thenUrlGeneratedSuccessfully() throws IOException {
-        MockMultipartFile[] mockFiles = createMockFile(DIRECTORY+FILE);
-
-        minioService.uploadFiles(mockFiles, userId, null);
-        String url = minioService.getDownloadUrl(DIRECTORY, userId);
-
-        String downloadDirectoryName = DIRECTORY.replace("/", ".zip");
-        String fileNameInUrl = url.replaceAll(".*("+downloadDirectoryName+").*", "$1");
-
-        assertEquals(downloadDirectoryName, fileNameInUrl);
     }
 
     @Test

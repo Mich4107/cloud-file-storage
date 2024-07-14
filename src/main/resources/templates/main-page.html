@@ -68,7 +68,7 @@
                                                 aria-labelledby="dropdownMenuButton"
                                                 style="background: #666666">
                                                 <li>
-                                                    <form th:action="@{/download}" method="post">
+                                                    <form th:action="@{/download-directory}" method="post">
                                                         <button class="dropdown-item">Download</button>
                                                         <div th:if="${param.path == null}">
                                                             <input type="hidden" name="name" th:value="${object}">
@@ -183,7 +183,7 @@
                                                 aria-labelledby="dropdownMenuButton"
                                                 style="background: #666666">
                                                 <li>
-                                                    <form th:action="@{/download}" method="post">
+                                                    <form th:action="@{/download-file}" method="post">
                                                         <button class="dropdown-item">Download</button>
                                                         <div th:if="${param.path == null}">
                                                             <input type="hidden" name="name" th:value="${object}">
