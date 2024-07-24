@@ -25,7 +25,6 @@ public class MainController {
     public String getMainPage(@RequestParam(name = "path", required = false) String pathToSubdirectory,
                               Model model) {
 
-
         Integer userId = authService.getAuthenticatedUserId();
         List<String> objectNames;
 

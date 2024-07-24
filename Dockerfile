@@ -1,6 +1,9 @@
-FROM gradle:8.9.0-jdk21-alpine
+FROM gradle:8.9.0-jdk21-alpine as build
 WORKDIR /app
 COPY . .
 RUN gradle build -x test
-RUN cp build/libs/cloud_file_storage.jar app.jar
+
+FROM amazoncorretto:21.0.4-al2023-headless
+WORKDIR /app
+COPY --from=build /app/build/libs/cloud_file_storage.jar app.jar
 CMD ["java", "-jar", "app.jar"]

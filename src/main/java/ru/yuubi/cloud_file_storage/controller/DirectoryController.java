@@ -29,20 +29,20 @@ public class DirectoryController {
     @PostMapping("/download-directory")
     public ResponseEntity<InputStreamResource> handleDownloadingDirectory(@RequestParam("name") String name) throws IOException {
         Integer userId = authService.getAuthenticatedUserId();
-        InputStream inputStream = minioService.createZipFile(name, userId);
+        try(InputStream inputStream = minioService.createZipFile(name, userId)) {
+            InputStreamResource resource = new InputStreamResource(inputStream);
 
-        InputStreamResource resource = new InputStreamResource(inputStream);
+            String zipName = FormatUtil.formatNameToZip(name);
+            String encodedZipName = URLEncoder.encode(zipName, StandardCharsets.UTF_8).replace("+", "%20");
 
-        String zipName = FormatUtil.formatNameToZip(name);
-        String encodedZipName = URLEncoder.encode(zipName, StandardCharsets.UTF_8).replace("+", "%20");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("attachment", encodedZipName);
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", encodedZipName);
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(resource);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+        }
     }
 
     @PostMapping("/rename-directory")

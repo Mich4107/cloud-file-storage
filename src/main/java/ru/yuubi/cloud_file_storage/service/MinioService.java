@@ -1,20 +1,19 @@
 package ru.yuubi.cloud_file_storage.service;
 
 import io.minio.Result;
-import io.minio.errors.*;
 import io.minio.messages.Item;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yuubi.cloud_file_storage.repository.MinioRepository;
 import ru.yuubi.cloud_file_storage.dto.SearchDto;
+import ru.yuubi.cloud_file_storage.util.exception.ExceptionHandlerUtil;
 
 import java.io.*;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 
 @Service
 public class MinioService {
@@ -94,7 +93,7 @@ public class MinioService {
 
     public InputStream getObjectInputStream(String name, Integer userId) {
         String userPath = String.format(basePath, userId);
-        return minioRepository.getObjectInputStream(userPath+name);
+        return minioRepository.getObjectInputStream(userPath + name);
     }
 
     public InputStream createZipFile(String name, Integer userId) throws IOException {
@@ -114,7 +113,7 @@ public class MinioService {
         String[] split = name.split("/");
         StringBuilder pathBuilder = new StringBuilder();
         for (int i = 0; i < split.length; i++) {
-            if(i < split.length - 1) {
+            if (i < split.length - 1) {
                 pathBuilder.append(split[i]).append("/");
             }
         }
@@ -157,30 +156,6 @@ public class MinioService {
             zipOut.write(buffer, 0, length);
         }
         zipOut.closeEntry();
-    }
-
-    private String uploadZipFile(byte[] zipData, Integer userId, String name) throws IOException {
-
-        try (InputStream inputStream = new ByteArrayInputStream(zipData)) {
-
-            String zipName = createZipName(name);
-            String userPath = String.format("user-%d-zip-files/", userId);
-            String objectName = userPath + zipName;
-
-            minioRepository.uploadObject(inputStream, objectName);
-
-            return objectName;
-        }
-    }
-
-    private String createZipName(String name) {
-        String[] strings = name.split("/");
-        return strings[strings.length - 1] + ".zip";
-    }
-
-    private String getDownloadUrlForFile(String name, Integer userId, Map<String, String> reqParams) {
-        String userPath = String.format(basePath, userId);
-        return minioRepository.getPresignedObjectUrl(userPath + name, reqParams);
     }
 
     public List<String> getFormattedListOfObjectNames(Integer userId) {
@@ -300,14 +275,6 @@ public class MinioService {
     }
 
     private Item getItemFromResult(Result<Item> result) {
-        try {
-
-            return result.get();
-
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException |
-                 InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException |
-                 XmlParserException e) {
-            throw new RuntimeException(e);
-        }
+        return ExceptionHandlerUtil.handleExceptions(result::get);
     }
 }

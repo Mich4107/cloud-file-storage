@@ -1,10 +1,13 @@
 package ru.yuubi.cloud_file_storage.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@UtilityClass
 public class BreadcrumbUtil {
-    public static Map<String, String> createBreadcrumb(String subdirectory) {
+    public Map<String, String> createBreadcrumb(String subdirectory) {
 
         Map<String, String> breadcrumb = new LinkedHashMap<>();
 

@@ -14,6 +14,7 @@ import ru.yuubi.cloud_file_storage.service.MinioService;
 import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +27,7 @@ public class FileController {
     private final MinioService minioService;
 
     @PostMapping("/download-file")
-    public ResponseEntity<InputStreamResource> handleDownloading(@RequestParam("name") String name) {
+    public ResponseEntity<InputStreamResource> handleDownloadingFile(@RequestParam("name") String name){
         Integer userId = authService.getAuthenticatedUserId();
         InputStream inputStream = minioService.getObjectInputStream(name, userId);
         InputStreamResource resource = new InputStreamResource(inputStream);
@@ -41,6 +42,7 @@ public class FileController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(resource);
+
     }
 
     @PostMapping("/rename-file")

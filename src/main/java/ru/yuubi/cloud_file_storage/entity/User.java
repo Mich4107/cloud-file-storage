@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "users", indexes = @Index(name = "login_index", columnList = "login", unique = true))
+@Table(name = "users")
 @NoArgsConstructor
 public class User {
 
@@ -14,10 +14,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "login", nullable = false, length = 64)
+    @Column(nullable = false, length = 64, unique = true)
     private String login;
 
-    @Column(name = "password", nullable = false, length = 64)
+    @Column(nullable = false, length = 64)
     private String password;
 
     public User(String login, String password) {

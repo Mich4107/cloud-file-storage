@@ -1,7 +1,7 @@
 services:
 
   app:
-    build: .
+    image: mich4107/cloud-file-storage
     restart: always
     ports:
       - "8080:8080"
