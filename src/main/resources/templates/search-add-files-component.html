@@ -21,7 +21,7 @@
             </div>
 
             <div sec:authorize="isAuthenticated()">
-                <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+                <form th:action="@{/files/upload}" method="post" enctype="multipart/form-data">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                             data-bs-target="#ID_add_file_to_particular_directory2">
                         Add file
@@ -74,7 +74,7 @@
                 </form>
             </div>
             <div sec:authorize="isAuthenticated()">
-                <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+                <form th:action="@{/files/upload}" method="post" enctype="multipart/form-data">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                             data-bs-target="#ID_add_directory_to_particular_directory22">
                         Add directory

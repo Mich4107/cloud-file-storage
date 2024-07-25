@@ -16,7 +16,7 @@
         <form class="row row-cols-1 g-2" th:action="@{/sign-up}" method="post" th:object="${user}">
             <div class="col">
                 <label for="inputEmail4" class="form-label">Login</label>
-                <span th:text="${errorMessage}" style="color: orangered; font-size: 14px; margin-left: 50px"></span>
+                <span th:if="${param.error != null}" th:text="${param.error.getFirst()}" style="color: orangered; font-size: 14px; margin-left: 50px"></span>
                 <input class="form-control bg-my-dark-color border-secondary" id="inputEmail4" th:field="*{login}">
                 <span th:if="${#fields.hasErrors('login')}" th:errors="*{login}" style="color: orangered; font-size: 14px"></span>
             </div>

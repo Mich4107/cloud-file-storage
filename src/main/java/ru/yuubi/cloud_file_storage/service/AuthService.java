@@ -1,5 +1,6 @@
 package ru.yuubi.cloud_file_storage.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,10 +16,11 @@ import ru.yuubi.cloud_file_storage.exception.UserAlreadyExistsException;
 import ru.yuubi.cloud_file_storage.service.security.CustomUserDetails;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void createUser(String login, String password) {
@@ -30,16 +32,6 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    // An explicit authentication process so that you don't have to enter data again after /sign-up. (When we use /sign-in,
-    // Spring does it for us, because of Security configuration)
-    public void authenticateUser(String login, String password) {
-        UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(login, password);
-
-        Authentication authentication = authenticationManager.authenticate(authToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
     public Integer getAuthenticatedUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof UserDetails) {
@@ -47,11 +39,5 @@ public class AuthService {
             return userDetails.getId();
         }
         return null;
-    }
-
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
     }
 }

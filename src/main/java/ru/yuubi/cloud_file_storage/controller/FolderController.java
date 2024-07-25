@@ -6,12 +6,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.DirectoryService;
-import ru.yuubi.cloud_file_storage.service.MinioService;
 import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
 
@@ -21,13 +19,15 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Controller
+@RequestMapping("/folders")
 @RequiredArgsConstructor
-public class DirectoryController {
+public class FolderController {
 
     private final AuthService authService;
     private final DirectoryService directoryService;
-    @PostMapping("/download-directory")
-    public ResponseEntity<InputStreamResource> handleDownloadingDirectory(@RequestParam("name") String name) throws IOException {
+
+    @GetMapping("/download")
+    public ResponseEntity<InputStreamResource> handleDownloadingFolder(@RequestParam("name") String name) throws IOException {
         Integer userId = authService.getAuthenticatedUserId();
         try(InputStream inputStream = directoryService.createZipFile(name, userId)) {
             InputStreamResource resource = new InputStreamResource(inputStream);
@@ -45,11 +45,11 @@ public class DirectoryController {
         }
     }
 
-    @PostMapping("/rename-directory")
-    public String handleRenamingDirectory(@RequestParam("new_directory_name") String newDirectoryName,
-                                          @RequestParam("old_directory_name") String oldDirectoryName,
-                                          @RequestParam(value = "path_to_directory", required = false) String pathToDirectory,
-                                          RedirectAttributes redirectAttributes) {
+    @PostMapping("/rename")
+    public String handleRenamingFolder(@RequestParam("new_directory_name") String newDirectoryName,
+                                       @RequestParam("old_directory_name") String oldDirectoryName,
+                                       @RequestParam(value = "path_to_directory", required = false) String pathToDirectory,
+                                       RedirectAttributes redirectAttributes) {
 
         if (pathToDirectory != null) {
             redirectAttributes.addAttribute("path", pathToDirectory);
@@ -88,10 +88,10 @@ public class DirectoryController {
         return "redirect:/main-page";
     }
 
-    @PostMapping("/delete-directory")
-    public String handleDeletingDirectory(@RequestParam("directory_name") String directoryName,
-                                          @RequestParam(value = "path_to_object", required = false) String pathToObject,
-                                          RedirectAttributes redirectAttributes) {
+    @PostMapping("/delete")
+    public String handleDeletingFolder(@RequestParam("directory_name") String directoryName,
+                                       @RequestParam(value = "path_to_object", required = false) String pathToObject,
+                                       RedirectAttributes redirectAttributes) {
 
         Integer userId = authService.getAuthenticatedUserId();
         directoryService.removeDirectory(directoryName, userId, pathToObject);

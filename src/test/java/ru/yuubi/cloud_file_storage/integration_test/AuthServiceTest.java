@@ -13,7 +13,6 @@ import ru.yuubi.cloud_file_storage.repository.MinioRepository;
 import ru.yuubi.cloud_file_storage.repository.UserRepository;
 import ru.yuubi.cloud_file_storage.exception.UserAlreadyExistsException;
 import ru.yuubi.cloud_file_storage.service.AuthService;
-import ru.yuubi.cloud_file_storage.service.MinioService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,8 +22,6 @@ public class AuthServiceTest {
 
     @MockBean
     private MainController mainController;
-    @MockBean
-    private MinioService minioService;
     @MockBean
     private MinioRepository minioRepository;
     @MockBean

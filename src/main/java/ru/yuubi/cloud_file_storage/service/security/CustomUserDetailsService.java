@@ -1,5 +1,6 @@
 package ru.yuubi.cloud_file_storage.service.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,6 +11,7 @@ import ru.yuubi.cloud_file_storage.entity.User;
 import java.util.Collections;
 
 @Service
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -24,9 +26,5 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getLogin(),
                 user.getPassword(),
                 Collections.emptyList());
-    }
-
-    public CustomUserDetailsService(UserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 }

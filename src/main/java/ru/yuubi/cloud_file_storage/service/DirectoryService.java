@@ -5,7 +5,6 @@ import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yuubi.cloud_file_storage.repository.MinioRepository;
-import ru.yuubi.cloud_file_storage.util.MinioUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,7 +20,6 @@ import static ru.yuubi.cloud_file_storage.util.MinioUtil.*;
 public class DirectoryService {
 
     private final MinioRepository minioRepository;
-    private final MinioService minioService;
 
     public InputStream createZipFile(String name, Integer userId) throws IOException {
         String userPath = getUserRootFolderPrefix(userId);
@@ -99,11 +97,8 @@ public class DirectoryService {
     public void removeDirectory(String directoryName, Integer userId, String pathToObject) {
         String userPath = getUserRootFolderPrefix(userId);
 
-        if (pathToObject != null) {
-            boolean isOneObject = minioService.isOneObjectOnParticularPath(userPath + pathToObject);
-            if (isOneObject) {
-                minioRepository.uploadEmptyDirectory(userPath + pathToObject);
-            }
+        if(isOneObjectOnPath(userPath, pathToObject, minioRepository)) {
+            minioRepository.uploadEmptyDirectory(userPath + pathToObject);
         }
 
         Iterable<Result<Item>> results = minioRepository.findObjectsRecursively(userPath + directoryName);
@@ -113,7 +108,4 @@ public class DirectoryService {
             minioRepository.removeObject(item.objectName());
         }
     }
-
-
-
 }

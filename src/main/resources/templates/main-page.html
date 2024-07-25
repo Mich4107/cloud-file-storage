@@ -28,6 +28,9 @@
         <span th:if="${param.error.getFirst().equals('character_limit')}">
             <span style="color: orangered; font-size: 15px; margin-left: 50px">Max length of name can be 220 characters</span>
         </span>
+        <span th:if="${param.error.getFirst().equals('unhandled_exception')}">
+            <span style="color: orangered; font-size: 15px; margin-left: 50px">Oops, something went wrong! We will fix it soon</span>
+        </span>
     </span>
 </div>
 <div th:if="${!objects.isEmpty()}">
@@ -68,7 +71,7 @@
                                                 aria-labelledby="dropdownMenuButton"
                                                 style="background: #666666">
                                                 <li>
-                                                    <form th:action="@{/download-directory}" method="post">
+                                                    <form th:action="@{/folders/download}" method="get">
                                                         <button class="dropdown-item">Download</button>
                                                         <div th:if="${param.path == null}">
                                                             <input type="hidden" name="name" th:value="${object}">
@@ -89,7 +92,7 @@
                                                     <hr class="dropdown-divider">
                                                 </li>
                                                 <li>
-                                                    <form th:action="@{/delete-directory}" method="post">
+                                                    <form th:action="@{/folders/delete}" method="post">
                                                         <button class="dropdown-item">Delete</button>
                                                         <div th:if="${param.path == null}">
                                                             <input type="hidden" name="directory_name"
@@ -127,7 +130,7 @@
                             </div>
                         </div>
 
-                        <form th:action="@{/rename-directory}" method="post">
+                        <form th:action="@{/folders/rename}" method="post">
                             <div class="modal fade"
                                  th:id="'ID_'+${#strings.replace(#strings.replace(#strings.replace(#strings.replace(#strings.replace(object, '.', '_'), ' ', '_'), '/', '_'), '(', '_'), ')', '_')}"
                                  tabindex="-1" aria-labelledby="exampleModalLabel1" aria-hidden="true">
@@ -183,7 +186,7 @@
                                                 aria-labelledby="dropdownMenuButton"
                                                 style="background: #666666">
                                                 <li>
-                                                    <form th:action="@{/download-file}" method="post">
+                                                    <form th:action="@{/files/download}" method="get">
                                                         <button class="dropdown-item">Download</button>
                                                         <div th:if="${param.path == null}">
                                                             <input type="hidden" name="name" th:value="${object}">
@@ -205,7 +208,7 @@
                                                     <hr class="dropdown-divider">
                                                 </li>
                                                 <li>
-                                                    <form th:action="@{/delete-file}" method="post">
+                                                    <form th:action="@{/files/delete}" method="post">
                                                         <button class="dropdown-item">Delete</button>
                                                         <div th:if="${param.path == null}">
                                                             <input type="hidden" name="object_name"
@@ -229,7 +232,7 @@
                                 </div>
                             </div>
                         </div>
-                        <form th:action="@{/rename-file}" method="post">
+                        <form th:action="@{/files/rename}" method="post">
                             <div class="modal fade"
                                  th:id="'ID_'+${#strings.replace(#strings.replace(#strings.replace(#strings.replace(#strings.replace(object, '.', '_'), ' ', '_'), '/', '_'), '(', '_'), ')', '_')}"
                                  tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

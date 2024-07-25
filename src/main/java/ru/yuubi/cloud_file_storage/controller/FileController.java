@@ -6,28 +6,50 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.FileService;
-import ru.yuubi.cloud_file_storage.service.MinioService;
 import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Controller
+@RequestMapping("/files")
 @RequiredArgsConstructor
 public class FileController {
 
     private final AuthService authService;
     private final FileService fileService;
 
-    @PostMapping("/download-file")
+    @PostMapping("/upload")
+    public String handleUploading(@RequestParam("files") MultipartFile[] files,
+                                  @RequestParam(value = "upload_path", required = false) String pathToUpload,
+                                  RedirectAttributes redirectAttributes) {
+
+        String fileName = files[0].getOriginalFilename();
+
+        if (fileName == null || fileName.isBlank()) {
+            redirectAttributes.addAttribute("error", "empty_form");
+            return "redirect:/main-page";
+        }
+
+        Integer userId = authService.getAuthenticatedUserId();
+        fileService.uploadFiles(files, userId, pathToUpload);
+
+        if (pathToUpload != null) {
+            redirectAttributes.addAttribute("path", pathToUpload);
+            return "redirect:/main-page";
+        }
+
+        return "redirect:/main-page";
+    }
+
+    @GetMapping("/download")
     public ResponseEntity<InputStreamResource> handleDownloadingFile(@RequestParam("name") String name){
         Integer userId = authService.getAuthenticatedUserId();
         InputStream inputStream = fileService.getObjectInputStream(name, userId);
@@ -46,7 +68,7 @@ public class FileController {
 
     }
 
-    @PostMapping("/rename-file")
+    @PostMapping("/rename")
     public String handleRenamingFile(@RequestParam("new_object_name") String newObjectName,
                                      @RequestParam("old_object_name") String oldObjectName,
                                      @RequestParam(value = "path_to_object", required = false) String pathToObject,
@@ -86,7 +108,7 @@ public class FileController {
         return "redirect:/main-page";
     }
 
-    @PostMapping("/delete-file")
+    @PostMapping("/delete")
     public String handleDeletingFile(@RequestParam("object_name") String objectName,
                                      @RequestParam(value = "path_to_object", required = false) String pathToObject,
                                      RedirectAttributes redirectAttributes) {
