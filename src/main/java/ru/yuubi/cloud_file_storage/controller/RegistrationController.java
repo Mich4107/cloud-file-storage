@@ -1,18 +1,13 @@
 package ru.yuubi.cloud_file_storage.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.yuubi.cloud_file_storage.dto.UserDto;
-import ru.yuubi.cloud_file_storage.exception.UserAlreadyExistsException;
 import ru.yuubi.cloud_file_storage.exception.WrongDataException;
 import ru.yuubi.cloud_file_storage.service.AuthService;
 import ru.yuubi.cloud_file_storage.service.security.SecurityService;
@@ -47,6 +42,7 @@ public class RegistrationController {
             throw new WrongDataException("Passwords don't match");
         }
         authService.createUser(login, password);
+
         securityService.authenticateUser(login, password);
         securityService.setSecurityContext(request);
 

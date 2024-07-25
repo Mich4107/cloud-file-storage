@@ -13,6 +13,8 @@ services:
       MINIO_URL: http://minio:9000
       MINIO_USER: minio
       MINIO_PASSWORD: minio123
+    volumes:
+      - app_logs:/app/logs
     depends_on:
       - db
       - minio
@@ -63,4 +65,5 @@ volumes:
   db_data:
   minio_data:
   redis_data:
+  app_logs:
 
