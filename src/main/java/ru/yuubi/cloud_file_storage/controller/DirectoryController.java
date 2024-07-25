@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
+import ru.yuubi.cloud_file_storage.service.DirectoryService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
 import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
@@ -24,12 +25,11 @@ import java.nio.charset.StandardCharsets;
 public class DirectoryController {
 
     private final AuthService authService;
-    private final MinioService minioService;
-
+    private final DirectoryService directoryService;
     @PostMapping("/download-directory")
     public ResponseEntity<InputStreamResource> handleDownloadingDirectory(@RequestParam("name") String name) throws IOException {
         Integer userId = authService.getAuthenticatedUserId();
-        try(InputStream inputStream = minioService.createZipFile(name, userId)) {
+        try(InputStream inputStream = directoryService.createZipFile(name, userId)) {
             InputStreamResource resource = new InputStreamResource(inputStream);
 
             String zipName = FormatUtil.formatNameToZip(name);
@@ -83,7 +83,7 @@ public class DirectoryController {
         }
 
         Integer userId = authService.getAuthenticatedUserId();
-        minioService.renameDirectory(oldDirectoryName, newDirectoryName, userId);
+        directoryService.renameDirectory(oldDirectoryName, newDirectoryName, userId);
 
         return "redirect:/main-page";
     }
@@ -94,7 +94,7 @@ public class DirectoryController {
                                           RedirectAttributes redirectAttributes) {
 
         Integer userId = authService.getAuthenticatedUserId();
-        minioService.removeDirectory(directoryName, userId, pathToObject);
+        directoryService.removeDirectory(directoryName, userId, pathToObject);
 
         if (pathToObject != null) {
             redirectAttributes.addAttribute("path", pathToObject);

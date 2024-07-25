@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.dto.SearchDto;
 import ru.yuubi.cloud_file_storage.service.AuthService;
-import ru.yuubi.cloud_file_storage.service.MinioService;
+import ru.yuubi.cloud_file_storage.service.SearchService;
 
 import java.util.Set;
 
@@ -19,7 +19,7 @@ import java.util.Set;
 public class SearchController {
 
     private final AuthService authService;
-    private final MinioService minioService;
+    private final SearchService searchService;
 
     @GetMapping
     public String handleSearch(@RequestParam("query") String searchQuery,
@@ -32,7 +32,7 @@ public class SearchController {
         }
 
         Integer userId = authService.getAuthenticatedUserId();
-        Set<SearchDto> searchDtoSet = minioService.searchFiles(searchQuery, userId);
+        Set<SearchDto> searchDtoSet = searchService.search(searchQuery, userId);
 
         model.addAttribute("searchDtoSet", searchDtoSet);
 

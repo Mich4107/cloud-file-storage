@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yuubi.cloud_file_storage.service.AuthService;
+import ru.yuubi.cloud_file_storage.service.FileService;
 import ru.yuubi.cloud_file_storage.service.MinioService;
 import ru.yuubi.cloud_file_storage.util.FormatUtil;
 import ru.yuubi.cloud_file_storage.util.ValidationUtil;
@@ -24,12 +25,12 @@ import java.nio.charset.StandardCharsets;
 public class FileController {
 
     private final AuthService authService;
-    private final MinioService minioService;
+    private final FileService fileService;
 
     @PostMapping("/download-file")
     public ResponseEntity<InputStreamResource> handleDownloadingFile(@RequestParam("name") String name){
         Integer userId = authService.getAuthenticatedUserId();
-        InputStream inputStream = minioService.getObjectInputStream(name, userId);
+        InputStream inputStream = fileService.getObjectInputStream(name, userId);
         InputStreamResource resource = new InputStreamResource(inputStream);
 
         name = FormatUtil.clearPackagesFromName(name);
@@ -80,7 +81,7 @@ public class FileController {
         }
 
         Integer userId = authService.getAuthenticatedUserId();
-        minioService.renameObject(oldObjectName, newObjectName, userId);
+        fileService.renameObject(oldObjectName, newObjectName, userId);
 
         return "redirect:/main-page";
     }
@@ -91,7 +92,7 @@ public class FileController {
                                      RedirectAttributes redirectAttributes) {
 
         Integer userId = authService.getAuthenticatedUserId();
-        minioService.removeObject(objectName, userId, pathToObject);
+        fileService.removeObject(objectName, userId, pathToObject);
 
         if (pathToObject != null) {
             redirectAttributes.addAttribute("path", pathToObject);

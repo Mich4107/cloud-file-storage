@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import ru.yuubi.cloud_file_storage.exception.MinioException;
 
 @UtilityClass
-public class ExceptionHandlerUtil {
+public class MinioExceptionHandlerUtil {
 
     public <T> T handleExceptions(ThrowingSupplier<T> supplier) {
         try {
