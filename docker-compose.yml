@@ -6,49 +6,58 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_USER=user
-      - DB_PASSWORD=user
-      - DB_URL=jdbc:postgresql://db:5432/cloud_file_storage
-      - REDIS_HOST=redis
-      - MINIO_URL=http://minio:9000
-      - MINIO_USER=minio
-      - MINIO_PASSWORD=minio123
+      DB_USER: user
+      DB_PASSWORD: user
+      DB_URL: jdbc:postgresql://db:5432/cloud_file_storage
+      REDIS_HOST: redis
+      MINIO_URL: http://minio:9000
+      MINIO_USER: minio
+      MINIO_PASSWORD: minio123
     depends_on:
       - db
       - minio
       - redis
 
   db:
-    image: postgres:latest
+    image: postgres:16-alpine
     restart: always
     environment:
       POSTGRES_DB: cloud_file_storage
       POSTGRES_USER: user
       POSTGRES_PASSWORD: user
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d cloud_file_storage"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   minio:
     image: minio/minio:latest
     restart: always
-    ports:
-      - "9000:9000"
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
     volumes:
       - minio_data:/data
     command: server /data
+    healthcheck:
+      test: [ "CMD-SHELL", "mc admin info local" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   redis:
-    image: redis:latest
+    image: redis:7.4-rc-alpine
     restart: always
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   db_data:
